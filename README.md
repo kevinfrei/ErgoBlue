@@ -44,10 +44,17 @@ the state of the keys to the master device.
 
 ## Designing the matrix
 First, go and read about keyboard matrices. There are a number of well written
-explanations for how they work. The important points (at least for me) are:
+explanations for how they work. [Here's the one I found that I liked the
+most.](http://pcbheaven.com/wikipages/How_Key_Matrices_Works/) The important
+points (at least for me) are:
 * Each key must be a unique combination of 'row' and 'column'
-* You need to make sure to wire the diodes in 'parallel'. If you wire them
-serially, things will probably be unhappy.
+* You need to make sure to wire the diodes in parallel. If you wire them
+serially, things may be unhappy (they may not, but parallel is the right way to
+do this.
+
+It has occurred to me that I might be able to cannibalize the ErgoDox PCB's for
+some/all of the wiring, but that just seems like a pain, and I'm not ready to
+destroy one yet.
 
 I grabbed the DXF for the ErgoDox plate and printed a few out to try to draw a
 key matrix I was happy with. First, I drew a plain matrix, like so:
