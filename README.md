@@ -12,11 +12,13 @@ a bunch of stuff that seems simple to me (but may not be to you, dear reader).
 Apologies in advance...
 
 ## Shopping List
-1. **2 AdaFruit feather nRF52's.**
-2. **2 LiPo batteries to drive the wireless modules.** I bought 500 mAh LiPo
-batteries, because I'm hoping they will last long enough for me to not have to
-charge very frequently.
-2. **A couple of ErgoDox keyboard plates.** I purchased a spare ErgoDox Infinity
+1. **2 [AdaFruit feather nRF52](https://www.adafruit.com/product/3406)'s.**
+1. **2 [LiPo batteries](https://www.adafruit.com/product/328) to drive the
+wireless modules.** I bought 500 mAh LiPo batteries, because I'm hoping they
+will last long enough for me to not have to charge very frequently. I'm a bit of
+an idiot, because I didn't realize that they had 2500 mAh LiPo batteries. They
+would be better...
+1. **A couple of ErgoDox keyboard plates.** I purchased a spare ErgoDox Infinity
 from MassDrop a while back (when they were still selling them), just to have
 around in case either my home or work keyboard died. I find all the cords for
 the ErgoDox *really* annoying, so I decided to grab the keyswitch plates and try
@@ -24,28 +26,30 @@ this out. I may wind up changing this keyboard to be a custom build instead. I
 find the lack of a decent place to put an 'Arrow T' pretty irritating, as well,
 so maybe sometime in the future I'll get as adventurous as Wez and make my own
 custom keyboard plate.
-3. **About 80 1n4148 'signaling' diodes.** (I bought 250, because they're
+1. **About 80 1n4148 'signaling' diodes.** (I bought 250, because they're
 cheap). I understand, logically, what a diode is, but I have zero understanding
 of the difference between a schottky diode, zener diode, or whatever. Everything
 I've read says to just use 1n4148's, so I bought a bunch from DigiKey. I haven't
 received them yet, so I'm just reading up on a bunch of stuff, and horsing
 around with the AdaFruit devices.
-4. **Key Switches.** Cherry MX Clear's are what I've used, but I recently
-acquired a glob of Zealios, which are also firmer than Cherry Brown's, so I'm
-gonna try the Zealios Purple's on the main keys, and the Clear's on the thumb
-clusters.
-5. **Key Caps.** I have a bunch of these hanging around, because *I have a
+1. **Key Switches.** [Cherry MX Clear](https://www.digikey.com/short/qq2p2d)'s
+are what I've used, but I recently acquired a glob of
+[Zealios](https://zealpc.net/collections/switches/products/zealio), which are
+also firmer than Cherry Brown's, so I'm gonna try the Zealios Purple's on the
+main keys, and the Clear's on the thumb clusters.
+1. **Key Caps.** I have a bunch of these hanging around, because *I have a
 problem*.
-6. **A MicroUSB Cable or two.** Find one in a drawer somewhere. These things are
-everywhere, like Easter grass or Christmas Tree tinsel. They multiply when out
-of sight, like a weird combination of rabbits, and Weeping Angels.
+1. **A [MicroUSB Cable](http://a.co/31KmMeQ) or two.** Find one in a drawer
+somewhere. These things are everywhere, like Easter grass or Christmas Tree
+tinsel. They multiply when out of sight, like a weird combination of rabbits,
+and Weeping Angels.
 
 ## Getting started
 To use the AdaFruit devices, I had to download an older version (1.6.14) of the
 Arduino IDE. The current version didn't want to let me follow AdaFruit's
 directions to get their BSP (Base Software Package?) installed into Arduino.
 
-I also had to jump through a number of hoops to get nrfutil functioning
+I also had to jump through a number of hoops to get `nrfutil` functioning
 properly.
 
 >I really hate Python, in no small part because every time I cross anything
@@ -104,9 +108,11 @@ to re-flash them.
 
 ![Rows All Wired](rows-wired.jpg)
 
-### Other useful things
+**Useful links**
+
 * [Matt3o's writeup of the BrownFox, the precursor to my wonderful WhiteFox.](https://deskthority.net/workshop-f7/brownfox-step-by-step-t6050.html)
-* AdaFruit links
- * [AdaFruit's Feather examples.](https://github.com/adafruit/Adafruit_nRF52_Arduino/tree/master/libraries/Bluefruit52Lib/examples)
- * [AdaFruit's nRF52 Learning Guide.](https://learn.adafruit.com/bluefruit-nrf52-feather-learning-guide/)
- * [AdaFruit nRF52 Pinout.](https://learn.adafruit.com/bluefruit-nrf52-feather-learning-guide/device-pinout)
+
+**AdaFruit links**
+* [AdaFruit's Feather examples.](https://github.com/adafruit/Adafruit_nRF52_Arduino/tree/master/libraries/Bluefruit52Lib/examples)
+* [AdaFruit's nRF52 Learning Guide.](https://learn.adafruit.com/bluefruit-nrf52-feather-learning-guide/)
+* [AdaFruit nRF52 Pinout.](https://learn.adafruit.com/bluefruit-nrf52-feather-learning-guide/device-pinout)
