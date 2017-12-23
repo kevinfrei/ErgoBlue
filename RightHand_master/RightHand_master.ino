@@ -66,8 +66,10 @@ void cent_connect_callback(uint16_t conn_handle) {
   char peer_name[32] = {0};
   Bluefruit.Gap.getPeerName(conn_handle, peer_name, sizeof(peer_name));
 
+#if DEBUG
   Serial.print("[Cent] Connected to ");
   Serial.println(peer_name);
+#endif
 
   if (clientUart.discover(conn_handle)) {
     // Enable TXD's notify
@@ -82,8 +84,9 @@ void cent_connect_callback(uint16_t conn_handle) {
 void cent_disconnect_callback(uint16_t conn_handle, uint8_t reason) {
   (void)conn_handle;
   (void)reason;
-
+#if DEBUG
   Serial.println("[Cent] Disconnected");
+#endif
   resetKeyMatrix();
 }
 
@@ -233,6 +236,7 @@ void resetKeyMatrix() {
 }
 
 void printState(struct keystate* state) {
+#if DEBUG
   Serial.print("ScanCode=");
   Serial.print(state->scanCode, HEX);
   Serial.print(" down=");
@@ -242,6 +246,7 @@ void printState(struct keystate* state) {
   Serial.print(" action=");
   Serial.print(state->action, HEX);
   Serial.println("");
+#endif
 }
 
 struct keystate* stateSlot(uint8_t scanCode, uint32_t now) {
@@ -444,7 +449,7 @@ void updateRemoteMatrix() {
       remoteMatrix.rows[rowNum] &= ~(1 << colNum);
     }
 
-#if 0
+#if DEBUG
     Serial.print("remote=");
     Serial.print(ch, HEX);
     Serial.print("\r\n");
@@ -611,7 +616,7 @@ void loop() {
       }
     }
 
-#if 1
+#if DEBUG
     Serial.print("mods=");
     Serial.print(mods, HEX);
     Serial.print(" repsize=");

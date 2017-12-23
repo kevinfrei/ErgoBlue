@@ -31,22 +31,22 @@ void startAdv(void) {
   Bluefruit.Advertising.start(0); // 0 = Don't stop advertising after n seconds
 }
 
-one_side_matrix_t lastRead = {0, 0, 0, 0, 0};
+matrix_t lastRead = {0, 0, 0, 0, 0};
 
-one_side_matrix_t read_matrix() {
-  one_side_matrix_t matrix = {0, 0, 0, 0, 0};
+matrix_t read_matrix() {
+  matrix_t matrix = {0, 0, 0, 0, 0};
 
-  for (int rowNum = 0; rowNum < numrows; ++rowNum) {
-    digitalWrite(rowPins[rowNum], LOW);
+  for (int colNum = 0; colNum < numcols; ++colNum) {
+    digitalWrite(colPins[colNum], LOW);
 
     // TODO: assert that numscols <= 8
-    for (int colNum = 0; colNum < numcols; ++colNum) {
-      if (!digitalRead(colPins[colNum])) {
+    for (int rowNum = 0; rowNum < numrows; ++rowNum) {
+      if (!digitalRead(rowPins[rowNum])) {
         matrix.rows[rowNum] |= 1 << colNum;
       }
     }
 
-    digitalWrite(rowPins[rowNum], HIGH);
+    digitalWrite(colPins[colNum], HIGH);
   }
 
   return matrix;
