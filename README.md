@@ -98,15 +98,34 @@ drew up a wiring diagram for each side:
 I know: I'm an artist. My talent is wasted managing a team of brilliant
 engineers.
 
-## Stuff to do while waiting for the diodes
+## Now, the work!
 
-I have some wire but the diodes haven't arrived, yet.  In the mean time, I've
-soldered up the receiver/row wires.  I also need to learn what the Arduino /
+### Soldering
+
+First, I stripped wires so they fit across the rows, then soldered them:
+![Rows All Wired](rows-wired.jpg)
+
+The diodes showed up last night, so I soldered them together on the left hand
+side. I'm old and  sitting down soldering for a lot time makes my back hurt, so
+I've just finished up the left hand side (probably not the smartest, because the
+right hand side is the master, here, so I think I have to mess with both chunks
+of Wez's code now. Here's the left hand side all dioded up.
+![Left Hand Size Dioded](lhs-dioded.jpg)
+
+### Software
+
+I have some *seriously* wacky layering going on in my original ErgoDox firmware
+but for now, I'm just going to try to get this set up as a normal Mac keyboard
+layout, without messing with layers yet (besides: layers are just software,
+which is a solvable problem without purchasing stuff...
+
+Time to dig in to Wez's stuff!
+
+I also need to learn what the Arduino /
 AdaFruit API's are doing, because I need an extra pin, and Wez's pin numbers
 don't seem to line up with the devices. I probably also need to figure out how
 to re-flash them.
 
-![Rows All Wired](rows-wired.jpg)
 
 **Useful links**
 
