@@ -1,5 +1,16 @@
 #include "shared.h"
 
+// Types
+using matrix_t = matrix_type<wscancode_t>;
+using action_t = uint32_t;
+using keystate = struct {
+  scancode_t scanCode;
+  bool down;
+  uint32_t lastChange;
+  action_t action;
+};
+
+// Globals
 BLEDis dis;
 BLEHidAdafruit hid;
 BLEClientUart clientUart;
@@ -7,13 +18,15 @@ BLEBas battery;
 static uint8_t battery_level = 0;
 static uint32_t last_bat_time = 0;
 
-struct matrix_t {
-  uint16_t rows[numrows];
-};
-struct matrix_t remoteMatrix = {0, 0, 0, 0, 0};
-struct matrix_t lastRead = {0, 0, 0, 0, 0};
+matrix_t remoteMatrix{};
+matrix_t lastRead{};
 
+// Declarations
 void resetKeyMatrix();
+void cent_connect_callback(uint16_t conn_handle);
+void cent_disconnect_callback(uint16_t conn_handle, uint8_t reason);
+void scan_callback(ble_gap_evt_adv_report_t* report);
+void startAdv();
 
 void setup() {
   shared_setup();
@@ -63,6 +76,7 @@ void setup() {
 }
 
 void cent_connect_callback(uint16_t conn_handle) {
+  // TODO: Maybe make this more secure?
   char peer_name[32] = {0};
   Bluefruit.Gap.getPeerName(conn_handle, peer_name, sizeof(peer_name));
 
@@ -113,14 +127,13 @@ void startAdv(void) {
   Bluefruit.Advertising.start(0); // 0 = Don't stop advertising after n seconds
 }
 
-static constexpr uint32_t kMask = 0xf00;
-static constexpr uint32_t kKeyPress = 0x100;
-static constexpr uint32_t kModifier = 0x200;
-static constexpr uint32_t kLayer = 0x300;
-static constexpr uint32_t kTapHold = 0x400;
-static constexpr uint32_t kToggleMod = 0x500;
-static constexpr uint32_t kKeyAndMod = 0x600;
-typedef uint32_t action_t;
+constexpr uint32_t kMask = 0xf00;
+constexpr uint32_t kKeyPress = 0x100;
+constexpr uint32_t kModifier = 0x200;
+constexpr uint32_t kLayer = 0x300;
+constexpr uint32_t kTapHold = 0x400;
+constexpr uint32_t kToggleMod = 0x500;
+constexpr uint32_t kKeyAndMod = 0x600;
 
 #define PASTE(a, b) a##b
 
@@ -133,6 +146,15 @@ typedef uint32_t action_t;
 #define KANDMOD(a, b) \
   kKeyAndMod | PASTE(HID_KEY_, a) | (PASTE(KEYBOARD_MODIFIER_, b) << 16)
 #define LAYER(n) kLayer | n
+
+// Left to right
+#define R0(l0, l1, l2, l3, l4, l5, l6)
+#define R1(l0, l1, l2, l3, l4, l5, l6)
+#define R2(l0, l1, l2, l3, l4, l5)
+#define R3(l0, l1, l2, l3, l4, l5, l6)
+#define R4(l0, l1, l2, l3, l4)
+// Left to right, top to bottom
+#define TM(l0, l1, l2, l3, l4, l5)
 
 #define KEYMAP(l00,                                                            \
                l01,                                                            \
@@ -215,13 +237,7 @@ typedef uint32_t action_t;
         r55                                                                    \
   }
 
-struct keystate {
-  uint8_t scanCode;
-  bool down;
-  uint32_t lastChange;
-  action_t action;
-};
-struct keystate keyStates[16];
+keystate keyStates[16];
 uint8_t layer_stack[8];
 static uint8_t layer_pos = 0;
 
@@ -235,7 +251,7 @@ void resetKeyMatrix() {
   hid.keyRelease();
 }
 
-void printState(struct keystate* state) {
+void printState(keystate* state) {
 #if DEBUG
   Serial.print("ScanCode=");
   Serial.print(state->scanCode, HEX);
@@ -249,9 +265,9 @@ void printState(struct keystate* state) {
 #endif
 }
 
-struct keystate* stateSlot(uint8_t scanCode, uint32_t now) {
-  struct keystate* vacant = nullptr;
-  struct keystate* reap = nullptr;
+keystate* stateSlot(uint8_t scanCode, uint32_t now) {
+  keystate* vacant = nullptr;
+  keystate* reap = nullptr;
   for (auto& s : keyStates) {
     if (s.scanCode == scanCode) {
       return &s;
@@ -276,7 +292,7 @@ struct keystate* stateSlot(uint8_t scanCode, uint32_t now) {
   return reap;
 }
 
-const action_t keymap[2][72] = {
+const action_t keymap[][numcols * numrows * 2] = {
     // Layer 0
     KEYMAP(
         // LEFT
@@ -436,9 +452,9 @@ const action_t keymap[2][72] = {
 // Remote matrix is the LHS
 void updateRemoteMatrix() {
   while (clientUart.available()) {
-    auto ch = (uint8_t)clientUart.read();
-    auto down = ch & 0x80;
-    ch &= ~0x80;
+    scancode_t ch = (scancode_t)clientUart.read();
+    auto down = is_key_down(ch);
+    ch = get_key(ch);
 
     auto rowNum = ch / numcols;
     auto colNum = ch - (rowNum * numcols);
@@ -452,33 +468,15 @@ void updateRemoteMatrix() {
 #if DEBUG
     Serial.print("remote=");
     Serial.print(ch, HEX);
-    Serial.print("\r\n");
+    Serial.println("");
 #endif
   }
-}
-
-struct matrix_t readMatrix() {
-  matrix_t matrix = remoteMatrix;
-
-  for (int colNum = 0; colNum < numcols; ++colNum) {
-    digitalWrite(colPins[colNum], LOW);
-
-    for (int rowNum = 0; rowNum < numrows; ++rowNum) {
-      if (!digitalRead(rowPins[rowNum])) {
-        matrix.rows[rowNum] |= 1 << (colNum + numcols);
-      }
-    }
-
-    digitalWrite(colPins[colNum], HIGH);
-  }
-
-  return matrix;
 }
 
 void readBattery() {
   auto now = millis();
 
-  if (now - last_bat_time <= 10000) {
+  if (now - last_bat_time <= 30000) {
     // There's a lot of variance in the reading, so no need
     // to over-report it.
     return;
@@ -504,7 +502,7 @@ static uint32_t resolveActionForScanCodeOnActiveLayer(uint8_t scanCode) {
 }
 
 void loop() {
-  auto down = readMatrix();
+  matrix_t down = matrix_t::read(remoteMatrix);
   bool keysChanged = false;
 
   updateRemoteMatrix();
@@ -625,15 +623,11 @@ void loop() {
       Serial.print(" ");
       Serial.print(report[i], HEX);
     }
-    Serial.print("\r\n");
+    Serial.println("");
 #endif
 
     hid.keyboardReport(mods, report);
     lastRead = down;
   }
-
-  // Request CPU to enter low-power mode until an event/interrupt occurs
-  waitForEvent();
+  waitForEvent(); // Request CPU enter low-power mode until an event occurs
 }
-
-void rtos_idle_callback(void) {}

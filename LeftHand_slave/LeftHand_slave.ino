@@ -1,7 +1,10 @@
 #include "shared.h"
 
+using matrix_t = matrix_type<scancode_t>;
+
 BLEDis bledis;
 BLEUart bleuart;
+matrix_t lastRead{};
 
 void setup() {
   shared_setup();
@@ -16,10 +19,7 @@ void setup() {
 
   bleuart.begin();
 
-  startAdv();
-}
-
-void startAdv(void) {
+  // Start Advertising the UART service to talk to the other half...
   Bluefruit.Advertising.addFlags(BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE);
   Bluefruit.Advertising.addTxPower();
   Bluefruit.Advertising.addAppearance(BLE_APPEARANCE_HID_KEYBOARD);
@@ -31,45 +31,17 @@ void startAdv(void) {
   Bluefruit.Advertising.start(0); // 0 = Don't stop advertising after n seconds
 }
 
-matrix_t lastRead = {0, 0, 0, 0, 0};
-
-matrix_t read_matrix() {
-  matrix_t matrix = {0, 0, 0, 0, 0};
-
-  for (int colNum = 0; colNum < numcols; ++colNum) {
-    digitalWrite(colPins[colNum], LOW);
-
-    // TODO: assert that numscols <= 8
-    for (int rowNum = 0; rowNum < numrows; ++rowNum) {
-      if (!digitalRead(rowPins[rowNum])) {
-        matrix.rows[rowNum] |= 1 << colNum;
-      }
-    }
-
-    digitalWrite(colPins[colNum], HIGH);
-  }
-
-  return matrix;
-}
-
 void loop() {
-  auto down = read_matrix();
-  constexpr int numreps = 16;
-  uint8_t report[numreps];
+  matrix_t down = matrix_t::read();
+  scancode_t report[numreps];
   uint8_t repsize = 0;
 
-  for (int rowNum = 0; rowNum < numrows && repsize < numreps; ++rowNum) {
-    for (int colNum = 0; colNum < numcols && repsize < numreps; ++colNum) {
-      auto mask = 1 << colNum;
-      auto current = lastRead.rows[rowNum] & mask;
-      auto thisScan = down.rows[rowNum] & mask;
+  for (uint8_t rowNum = 0; rowNum < numrows && repsize < numreps; ++rowNum) {
+    for (uint8_t colNum = 0; colNum < numcols && repsize < numreps; ++colNum) {
+      scancode_t current = lastRead.get_switch(rowNum, colNum);
+      scancode_t thisScan = down.get_switch(rowNum, colNum);
       if (current != thisScan) {
-        auto scanCode = (rowNum * numcols) + colNum;
-        if (thisScan) {
-          // TODO: Again, assert that our scan code all fits in here...
-          scanCode |= 0x80; // Set the high bit
-        }
-        report[repsize++] = scanCode;
+        report[repsize++] = make_scan_code(rowNum, colNum, thisScan);
       }
     }
   }
@@ -79,17 +51,13 @@ void loop() {
 #if DEBUG
     Serial.print("repsize=");
     Serial.print(repsize);
-    Serial.print(" ");
-    for (int i = 0; i < repsize; i++) {
-      Serial.print(report[i], HEX);
+    for (uint8_t i = 0; i < repsize; i++) {
       Serial.print(" ");
+      Serial.print(report[i], HEX);
     }
-    Serial.print("\r\n");
+    Serial.println("");
 #endif
     bleuart.write(report, repsize);
   }
-  // Request CPU to enter low-power mode until an event/interrupt occurs
-  waitForEvent();
+  waitForEvent(); // Request CPU enter low-power mode until an event occurs
 }
-
-void rtos_idle_callback(void) {}
