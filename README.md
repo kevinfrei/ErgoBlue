@@ -93,7 +93,11 @@ future. Probably not.
 Once I had a matrix that made sense to my brain, I grabbed switches, stuck 'em
 in the switch plate, and looked at where the connections go. Based on that, I
 drew up a wiring diagram for each side:
+
+Here's the right hand side:
 ![Right Hand Side](RHS.png)
+
+And here's the left:
 ![Left Hand Side](LHS.png)
 I know: I'm an artist. My talent is wasted managing a team of brilliant
 engineers.
@@ -109,15 +113,44 @@ The diodes showed up last night, so I soldered them together on the left hand
 side. I'm old and  sitting down soldering for a lot time makes my back hurt, so
 I've just finished up the left hand side (probably not the smartest, because the
 right hand side is the master, here, so I think I have to mess with both chunks
-of Wez's code now. Here's the left hand side all dioded up.
+of Wez's code now. Here's the left hand side all dioded (that's a word!) up.
 ![Left Hand Size Dioded](lhs-dioded.jpg)
+
+### Case Design
+
+I've already got a Fusion 3D project for my ErgoDox to build a nice hardwood
+case.  Based on that, I've added carve-outs for the battery & AdaFruit in the
+underside of the wrist rest. Time to spin up the CNC machine.
+
+>I have an [E3 CNC from BobsCNC](https://www.bobscnc.com). They kit came with a
+damanged piece, which they replaced quickly after a quick conversation on FB
+Messenger.  The device itself is capable, but it's clearly focused on simple
+engraving kind of stuff. The router is a wee bit under powered, but the real
+issue is that the gantry (look, Ma, official words!) is just not sturdy enough
+to handle something more powerful, so it results in things taking a *long* time
+to mill, because you have to go really slowly. And going slowly is frequently
+*really* hard on both the stock, and the cutter. If I had it to do over again, I
+think I'd go with an [X-Carve](https://www.inventables.com/technologies/x-carve)
+or [Shapeoko](https://shop.carbide3d.com/collections/machines/shapeoko). I'm
+going to wind up upgrading to something much nicer when I haven't purchased so
+many other expensive things in a while. If I had either of the other two, I'm
+guessing I probably wouldn't be upgrading for a much longer time. Though, I
+think the E3 has more Z-Axis distance than either of the other two. Right now,
+I'm either going to go with something *really* pricey, or just say something
+like the [MillRightCNC Power
+Route](https://www.millrightcnc.com/product-page/millright-cnc-power-route) is
+all I'll ever need.
+
+I've got a couple of chunks of maple to try out. I'll upload my Fusion 3D
+project somewhere accessible (probably not up here: I have no idea how well a
+f3d file versions...)
 
 ### Software
 
 I have some *seriously* wacky layering going on in my original ErgoDox firmware
 but for now, I'm just going to try to get this set up as a normal Mac keyboard
 layout, without messing with layers yet (besides: layers are just software,
-which is a solvable problem without purchasing stuff...
+which is a solvable problem without purchasing stuff...)
 
 Time to dig in to Wez's stuff!
 
@@ -126,6 +159,11 @@ AdaFruit API's are doing, because I need an extra pin, and Wez's pin numbers
 don't seem to line up with the devices. I probably also need to figure out how
 to re-flash them.
 
+## Future Plans
+
+* Add an on/off switch to conserve battery (but only if it's worth while)
+* Add an LED or two to indicate layer/mode stuff
+* Upload my Fusion 3D project for the wood case
 
 **Useful links**
 
