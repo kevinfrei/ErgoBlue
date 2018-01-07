@@ -2,11 +2,11 @@
 
 Stuff for a fully wireless ErgoDox based on a
 [Gist](https://gist.github.com/wez/b30683a4dfa329b86b9e0a2811a8c593) from the
-fabulous Wez Furlong.  If you read Wez's Gist, he explains some of this. I'm
-going to document what I'm doing as I go.
+fabulous Wez Furlong (@wez).  If you read his Gist, he explains some of this.
+I'm going to document what I'm doing as I go.
 
 This is my first time doing anything real with Arduino or low level electronics
-at all. So some of this stuff will be absurdly more detailed that it probably
+at all. so some of this stuff will be absurdly more detailed that it probably
 needs to be, but I'm also an experienced software developer, so I'll gloss over
 a bunch of stuff that seems simple to me (but may not be to you, dear reader).
 Apologies in advance...
@@ -39,10 +39,13 @@ also firmer than Cherry Brown's, so I'm gonna try the Zealios Purple's on the
 main keys, and the Clear's on the thumb clusters.
 1. **Key Caps.** I have a bunch of these hanging around, because *I have a
 problem*.
-1. **A [MicroUSB Cable](http://a.co/31KmMeQ) or two.** Find one in a drawer
-somewhere. These things are everywhere, like Easter grass or Christmas Tree
+1. **A [MicroUSB Cable](http://a.co/31KmMeQ) or two.** Find one in a drawer somewhere. These things are everywhere, like Easter grass or Christmas Tree
 tinsel. They multiply when out of sight, like a weird combination of rabbits,
 and Weeping Angels.
+1. **Some kind of case that works**. For me, I bought a chunk of maple and used
+Autodesk Fusion360 to model a nice case with spots for the AdaFruit board and
+the batteries, because I have a little CNC machine. Given that we don't have the
+PCB layer from the original ErgoDox Infinity, I suspect you could do something with that case if you tried.
 
 ## Getting started
 To use the AdaFruit devices, I had to download an older version (1.6.14) of the
@@ -63,7 +66,7 @@ but found myself having to try a variety of different things to get them working
 correctly. I'm using a Mac to do all this. Perhaps it's easier on PC (but my PC
 died a couple weeks ago, and I don't want to fix it yet...)
 
-Once you've got the AdaFruit devices working, you 'Upload' the "sketch" to each
+Once you've got the AdaFruit devices working, you upload the "sketch" to each
 device. The right hand device is the 'master' and is the name of the keyboard
 you'll see when you try to connect it to your computer (or iPad, or phone, or
 whatever). The left hand devices is the 'slave' and all it does is communicate
@@ -81,7 +84,9 @@ do this.
 
 It has occurred to me that I might be able to cannibalize the ErgoDox PCB's for
 some/all of the wiring, but that just seems like a pain, and I'm not ready to
-destroy one yet.
+destroy one yet.  (Update: I could totally see myself destroying one now, but I
+think I'm going to try using my CNC to make a PCB for a future evolution of this
+project.)
 
 I grabbed the DXF for the ErgoDox plate and printed a few out to try to draw a
 key matrix I was happy with. First, I drew a plain matrix, like so:
@@ -110,7 +115,7 @@ First, I stripped wires so they fit across the rows, then soldered them:
 ![Rows All Wired](rows-wired.jpg)
 
 The diodes showed up last night, so I soldered them together on the left hand
-side. I'm old and  sitting down soldering for a lot time makes my back hurt, so
+side. I'm old and sitting down soldering for a lot time makes my back hurt, so
 I've just finished up the left hand side (probably not the smartest, because the
 right hand side is the master, here, so I think I have to mess with both chunks
 of Wez's code now. Here's the left hand side all dioded (that's a word!) up.
@@ -118,8 +123,10 @@ of Wez's code now. Here's the left hand side all dioded (that's a word!) up.
 
 ### Case Design
 
-I've already got a Fusion 3D project for my ErgoDox to build a nice hardwood
-case.  Based on that, I've added carve-outs for the battery & AdaFruit in the
+I already had an AutoDesk Fusion360 project for my ErgoDox Infinity to build a
+nice hardwood case. The ErgoDox I use at work is in a [black
+limba](http://www.crosscuthardwoods.com/black-limba.html) case that looks quite
+nice). Based on that, I've added carve-outs for the battery & AdaFruit in the
 underside of the wrist rest. Time to spin up the CNC machine.
 
 >I have an [E3 CNC from BobsCNC](https://www.bobscnc.com). They kit came with a
@@ -141,29 +148,64 @@ like the [MillRightCNC Power
 Route](https://www.millrightcnc.com/product-page/millright-cnc-power-route) is
 all I'll ever need.
 
-I've got a couple of chunks of maple to try out. I'll upload my Fusion 3D
-project somewhere accessible (probably not up here: I have no idea how well a
-f3d file versions...)
+I grabbed a couple of chunks of maple from [Crosscut
+Hardwoods](http://www.crosscuthardwoods.com/) in Seattle on the cheap, because
+they only had to be about 9 inches square. This is a real advantage of a 2 piece
+keyboard. You can use cheap scrap end-chunks of wood for the cases. I milled
+them on my CNC and then spent a bunch of time widening the cavity for the switch
+plate by hand (you'd think after my previous experience, I would have learned my
+lesson, but I didn't). Next I screwed the switch plates into position. I started
+with the right side, and realized that I didn't have enough space under the BLE
+PCB for the wires, so on the left side, I remedied that situation.
+
+![Hardwood Cases: Top View](case-top.jpg)
+
+The little cut-out above the thumb cluster is for a hinge to hold the leg. I
+like my keyboard tented up a bit, but I use a keyboard drawer at home, so the
+legs will fold down to allow the drawer to close up and hide the horror of my
+messy desk.
+
+![Hardwood Cases: Underbelly](case-underbelly.jpg)
+
+I'll upload my Fusion360 project somewhere accessible if anyone asks (probably
+not up here: I have no idea how well a f3d file versions...)
+
+At this point, I trimmed & soldered the wires up (on top for the right side,
+underneath for the left, which looks much better because of this) and then
+screwed the AdaFruit board in place. I messed up at this point, crushing the
+charging LED on the left side. It still appears to hold a charge, but the light
+doesn't work anymore :(. I keep the batteries in place with just a little black
+wire tie that you can find in a drawer or on a shelf, or where ever electronic
+cables are sold. I was using #4 3/8" screws everywhere, though the heads are
+bigger than necessary (thus causing the crushed LED). I predrilled everywhere
+because maple is hard, and the case might crack if I didn't. After than I hot-glued the living crap of the thing. I still expect that pulling keycaps off risky (which I'm going to risk, anyway, because I prefer my XDA Canvas keycaps over the DSA Granite ones I put on this thing while still 'in development').
+
+Here's a nice picture of it after all the 'hardware' parts of the project are complete. The only thing I haven't done is seal the little hinged legs.
+
+![Seedy Underbelly](wired-underbelly.jpg)
+
+And here's a top view:
+
+![Over the top](wired-top.jpg)
 
 ### Software
 
 I have some *seriously* wacky layering going on in my original ErgoDox firmware
-but for now, I'm just going to try to get this set up as a normal Mac keyboard
-layout, without messing with layers yet (besides: layers are just software,
-which is a solvable problem without purchasing stuff...)
-
-Time to dig in to Wez's stuff!
-
-I also need to learn what the Arduino /
-AdaFruit API's are doing, because I need an extra pin, and Wez's pin numbers
-don't seem to line up with the devices. I probably also need to figure out how
-to re-flash them.
+(which you can check out in my KLL fork, if you feel like it) but I plan on
+starting this out as a normal Mac keyboard layout, without doing too much else.
+I modified Wez's software in a couple of core ways, thus far. The biggest thing
+I did was to change the slave to just send the raw 6 bytes of data every time
+something changes (5 bytes of matrix data, 1 byte of battery info). I don't
+think I'll have to change *anything* on the left hand side now. I also really
+hate doing anything significant with the preprocessor, so I might try to make
+something a bit more C++-ish with the actual keymapping code.
 
 ## Future Plans
 
 * Add an on/off switch to conserve battery (but only if it's worth while)
-* Add an LED or two to indicate layer/mode stuff
-* Upload my Fusion 3D project for the wood case
+* Add an LED or two or three to indicate layer/mode stuff: There's a nice spot
+  for it where the LCD screen went on the Infinity...
+* Upload my Fusion360 project for the wood case
 
 **Useful links**
 
@@ -173,3 +215,11 @@ to re-flash them.
 * [AdaFruit's Feather examples.](https://github.com/adafruit/Adafruit_nRF52_Arduino/tree/master/libraries/Bluefruit52Lib/examples)
 * [AdaFruit's nRF52 Learning Guide.](https://learn.adafruit.com/bluefruit-nrf52-feather-learning-guide/)
 * [AdaFruit nRF52 Pinout.](https://learn.adafruit.com/bluefruit-nrf52-feather-learning-guide/device-pinout)
+
+## Next project
+This has been super fun. Once I'm done with this project, I'm going to try to
+make a fully custom keyboard with a PCB that I mill on my CNC, with a purple
+heart hardwood case.  The primary complaint I have about my ErgoDox is the lack
+of a decent place to put a set of arrow keys. I'm going to try to address that
+and maybe shrink the thumb cluster and remove the extra index-finger row. Wish
+me luck!
