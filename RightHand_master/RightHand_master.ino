@@ -15,11 +15,9 @@ BLEDis dis;
 BLEHidAdafruit hid;
 BLEClientUart clientUart;
 BLEBas battery;
-static uint8_t battery_level = 0;
-static uint32_t last_bat_time = 0;
 
-matrix_t remoteMatrix{};
-matrix_t lastRead{};
+hwstate leftSide{};
+hwstate rightSide{};
 
 // Declarations
 void resetKeyMatrix();
@@ -76,7 +74,8 @@ void setup() {
 }
 
 void cent_connect_callback(uint16_t conn_handle) {
-  // TODO: Maybe make this more secure?
+  // TODO: Maybe make this more secure? I haven't looked into how secure this
+  // is in the documentation :/
   char peer_name[32] = {0};
   Bluefruit.Gap.getPeerName(conn_handle, peer_name, sizeof(peer_name));
 
@@ -240,8 +239,8 @@ static uint8_t layer_pos = 0;
 void resetKeyMatrix() {
   layer_pos = 0;
   layer_stack[0] = 0;
-  memset(&remoteMatrix, 0, sizeof(remoteMatrix));
-  memset(&lastRead, 0, sizeof(lastRead));
+  memset(&leftSide, 0, sizeof(leftSide));
+  memset(&rightSide, 0, sizeof(rightSide));
   memset(keyStates, 0xff, sizeof(keyStates));
 
   hid.keyRelease();
@@ -445,34 +444,6 @@ const action_t keymap[][numcols * numrows * 2] = {
         ___,
         ___)};
 
-// Remote matrix is the LHS
-void updateRemoteMatrix() {
-  if (clientUart.available()) {
-    for (int r = 0; r < numrows; r++) {
-      remoteMatrix.rows[r] = clientUart.read() << 8;
-    }
-  }
-}
-
-void readBattery() {
-  auto now = millis();
-
-  if (now - last_bat_time <= 30000) {
-    // There's a lot of variance in the reading, so no need
-    // to over-report it.
-    return;
-  }
-  last_bat_time = now;
-  constexpr int VBAT = 31; // pin 31 is available for sampling the battery
-  float measuredvbat = analogRead(VBAT) * 6.6 / 1024;
-  uint8_t bat_percentage = (uint8_t)round((measuredvbat - 3.7) * 200);
-  bat_percentage = min(bat_percentage, 100);
-  if (battery_level != bat_percentage) {
-    battery_level = bat_percentage;
-    battery.notify(battery_level);
-  }
-}
-
 static uint32_t resolveActionForScanCodeOnActiveLayer(uint8_t scanCode) {
   int s = layer_pos;
 
@@ -499,14 +470,23 @@ void dump(matrix_t& m) {
 #endif
 
 void loop() {
-  matrix_t down = matrix_t::read(remoteMatrix);
-  bool keysChanged = false;
+  uint32_t now = millis();
 
-  updateRemoteMatrix();
-  readBattery();
+  hwstate downRight{now, rightSide};
+  hwstate downLeft{clientUart, leftSide};
 
-
-  auto now = millis();
+  if (downRight.battery_level != rightSide.battery_level ||
+      downLeft.battery_level != leftSide.battery_level) {
+    battery.notify((downRight.battery_level + downLeft.battery_level) / 2);
+    rightSide.battery_level = downRight.battery_level;
+    leftSide.battery_level = downLeft.battery_level;
+  }
+  bool keysChanged = downRight != rightSide || downLeft != leftSide;
+  if (keysChanged) {
+    DBG(downRight.dump());
+    DBG(downLeft.dump());
+  }
+#if 0
 
   for (int rowNum = 0; rowNum < numrows; ++rowNum) {
     for (int colNum = 0; colNum < 2 * numcols; ++colNum) {
@@ -629,5 +609,6 @@ void loop() {
     hid.keyboardReport(mods, report);
     lastRead = down;
   }
+#endif
   waitForEvent(); // Request CPU enter low-power mode until an event occurs
 }

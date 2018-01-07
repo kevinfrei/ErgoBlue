@@ -4,7 +4,7 @@ using matrix_t = matrix_type<scancode_t>;
 
 BLEDis bledis;
 BLEUart bleuart;
-matrix_t lastRead{};
+hwstate lastRead{};
 
 void setup() {
   shared_setup();
@@ -30,43 +30,14 @@ void setup() {
   Bluefruit.Advertising.setFastTimeout(30); // number of seconds in fast mode
   Bluefruit.Advertising.start(0); // 0 = Don't stop advertising after n seconds
 }
-#if DEBUG
-void dump(matrix_t& m) {
-  Serial.println("Key Matrix:");
-  for (int r = 0; r < numrows; r++) {
-    for (int c = 0; c < numcols; c++) {
-      unsigned int mask = 1 << c;
-      if (m.rows[r] & mask) {
-        Serial.print("X ");
-      } else {
-        Serial.print("- ");
-      }
-    }
-    Serial.println("");
-  }
-}
-#endif
 
 void loop() {
-  matrix_t down = matrix_t::read();
-  /*
-  scancode_t report[numreps];
-  uint8_t repsize = 0;
+  hwstate down{millis(), lastRead};
 
-  for (uint8_t rowNum = 0; rowNum < numrows && repsize < numreps; ++rowNum) {
-    for (uint8_t colNum = 0; colNum < numcols && repsize < numreps; ++colNum) {
-      scancode_t current = lastRead.get_switch(rowNum, colNum);
-      scancode_t thisScan = down.get_switch(rowNum, colNum);
-      if (current != thisScan) {
-        report[repsize++] = make_scan_code(rowNum, colNum, thisScan);
-      }
-    }
-  }
-*/
-  if (memcmp(down.rows, lastRead.rows, numrows)) {
+  if (down != lastRead) {
     lastRead = down;
-    DBG(dump(down));
-    bleuart.write(down.rows, numrows);
+    DBG(down.dump());
+    bleuart.write((uint8_t*)&down, sizeof(down));
   }
   waitForEvent(); // Request CPU enter low-power mode until an event occurs
 }
