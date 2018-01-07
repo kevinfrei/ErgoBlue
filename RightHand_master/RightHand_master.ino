@@ -447,23 +447,10 @@ const action_t keymap[][numcols * numrows * 2] = {
 
 // Remote matrix is the LHS
 void updateRemoteMatrix() {
-  while (clientUart.available()) {
-    scancode_t ch = (scancode_t)clientUart.read();
-    auto down = is_key_down(ch);
-    ch = get_key(ch);
-
-    auto rowNum = ch / numcols;
-    auto colNum = ch - (rowNum * numcols);
-
-    if (down) {
-      remoteMatrix.rows[rowNum] |= 1 << colNum;
-    } else {
-      remoteMatrix.rows[rowNum] &= ~(1 << colNum);
+  if (clientUart.available()) {
+    for (int r = 0; r < numrows; r++) {
+      remoteMatrix.rows[r] = clientUart.read() << 8;
     }
-
-    DBG(Serial.print("remote="));
-    DBG(Serial.print(ch, HEX));
-    DBG(Serial.println(""));
   }
 }
 
@@ -494,6 +481,22 @@ static uint32_t resolveActionForScanCodeOnActiveLayer(uint8_t scanCode) {
   }
   return keymap[layer_stack[s]][scanCode];
 }
+#if DEBUG
+void dump(matrix_t& m) {
+  Serial.println("Key Matrix:");
+  for (int r = 0; r < numrows; r++) {
+    for (int c = 0; c < numcols * 2; c++) {
+      unsigned int mask = 1 << c;
+      if (m.rows[r] & mask) {
+        Serial.print("X ");
+      } else {
+        Serial.print("- ");
+      }
+    }
+    Serial.println("");
+  }
+}
+#endif
 
 void loop() {
   matrix_t down = matrix_t::read(remoteMatrix);
@@ -501,6 +504,7 @@ void loop() {
 
   updateRemoteMatrix();
   readBattery();
+
 
   auto now = millis();
 
@@ -566,6 +570,8 @@ void loop() {
   }
 
   if (keysChanged) {
+    DBG(dump(down));
+
     uint8_t report[6] = {0, 0, 0, 0, 0, 0};
     uint8_t repsize = 0;
     uint8_t mods = 0;
