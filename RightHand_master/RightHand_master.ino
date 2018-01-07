@@ -452,22 +452,6 @@ static uint32_t resolveActionForScanCodeOnActiveLayer(uint8_t scanCode) {
   }
   return keymap[layer_stack[s]][scanCode];
 }
-#if DEBUG
-void dump(matrix_t& m) {
-  Serial.println("Key Matrix:");
-  for (int r = 0; r < numrows; r++) {
-    for (int c = 0; c < numcols * 2; c++) {
-      unsigned int mask = 1 << c;
-      if (m.rows[r] & mask) {
-        Serial.print("X ");
-      } else {
-        Serial.print("- ");
-      }
-    }
-    Serial.println("");
-  }
-}
-#endif
 
 void loop() {
   uint32_t now = millis();
@@ -477,15 +461,18 @@ void loop() {
 
   if (downRight.battery_level != rightSide.battery_level ||
       downLeft.battery_level != leftSide.battery_level) {
-    battery.notify((downRight.battery_level + downLeft.battery_level) / 2);
+    // We only get the battery level once you hit a key, so only report it if we
+    // have something to actually report
+    if (downLeft.battery_level) {
+      battery.notify((downRight.battery_level + downLeft.battery_level) / 2);
+    } else {
+      battery.notify(downRight.battery_level);
+    }
     rightSide.battery_level = downRight.battery_level;
     leftSide.battery_level = downLeft.battery_level;
   }
   bool keysChanged = downRight != rightSide || downLeft != leftSide;
-  if (keysChanged) {
-    DBG(downRight.dump());
-    DBG(downLeft.dump());
-  }
+  
 #if 0
 
   for (int rowNum = 0; rowNum < numrows; ++rowNum) {
@@ -610,5 +597,14 @@ void loop() {
     lastRead = down;
   }
 #endif
+  if (keysChanged) {
+    DBG(Serial.println("============================="));
+    DBG(Serial.print("Left side "));
+    DBG(downLeft.dump());
+    DBG(Serial.print("Right side "));
+    DBG(downRight.dump());
+    rightSide = downRight;
+    leftSide = downLeft;
+  }
   waitForEvent(); // Request CPU enter low-power mode until an event occurs
 }

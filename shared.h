@@ -120,7 +120,7 @@ struct hwstate {
 };
 
 uint8_t readBattery(uint32_t now, const hwstate& prev) {
-  if (now - last_bat_time <= 30000) {
+  if (prev.battery_level && now - last_bat_time <= 30000) {
     // There's a lot of variance in the reading, so no need to over-report it.
     return prev.battery_level;
   }
