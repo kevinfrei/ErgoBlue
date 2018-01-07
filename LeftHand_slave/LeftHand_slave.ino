@@ -1,9 +1,10 @@
 #include "shared.h"
 
+using matrix_t = matrix_type<scancode_t>;
+
 BLEDis bledis;
 BLEUart bleuart;
-
-keyboard_state lastRead{};
+matrix_t lastRead{};
 
 void setup() {
   shared_setup();
@@ -28,14 +29,35 @@ void setup() {
   Bluefruit.Advertising.setInterval(32, 244); // in unit of 0.625 ms
   Bluefruit.Advertising.setFastTimeout(30); // number of seconds in fast mode
   Bluefruit.Advertising.start(0); // 0 = Don't stop advertising after n seconds
-  DBG(Serial.println("test"));
 }
 
 void loop() {
-  keyboard_state down{lastRead, millis()};
-  if (down != lastRead) {
+  matrix_t down = matrix_t::read();
+  scancode_t report[numreps];
+  uint8_t repsize = 0;
+
+  for (uint8_t rowNum = 0; rowNum < numrows && repsize < numreps; ++rowNum) {
+    for (uint8_t colNum = 0; colNum < numcols && repsize < numreps; ++colNum) {
+      scancode_t current = lastRead.get_switch(rowNum, colNum);
+      scancode_t thisScan = down.get_switch(rowNum, colNum);
+      if (current != thisScan) {
+        report[repsize++] = make_scan_code(rowNum, colNum, thisScan);
+      }
+    }
+  }
+
+  if (repsize) {
     lastRead = down;
-    down.send(bleuart);
+#if DEBUG
+    Serial.print("repsize=");
+    Serial.print(repsize);
+    for (uint8_t i = 0; i < repsize; i++) {
+      Serial.print(" ");
+      Serial.print(report[i], HEX);
+    }
+    Serial.println("");
+#endif
+    bleuart.write(report, repsize);
   }
   waitForEvent(); // Request CPU enter low-power mode until an event occurs
 }
