@@ -1,7 +1,7 @@
 #include "shared.h"
 
 // Types
-using matrix_t = matrix_type<wscancode_t>;
+// using matrix_t = matrix_type<wscancode_t>;
 using action_t = uint32_t;
 using keystate = struct {
   scancode_t scanCode;
@@ -432,33 +432,6 @@ const action_t keymap[][numcols * numrows * 2] = {
         ___,
         ___)};
 
-// Remote matrix is the LHS
-void updateRemoteMatrix() {
-  if (clientUart.available()) {
-    scancode_t ch = (scancode_t)clientUart.read();
-    DBG(Serial.print("remote="));
-    DBG(Serial.print(ch, HEX));
-    DBG(Serial.println(""));
-    remoteMatrix.update(ch);
-  }
-}
-
-uint8_t readBattery(uint32_t now) {
-  if (now - last_bat_time <= 30000) {
-    // There's a lot of variance in the reading, so no need
-    // to over-report it.
-    return battery_level;
-  }
-  last_bat_time = now;
-  float measuredvbat = analogRead(VBAT) * 6.6 / 1024;
-  uint8_t bat_percentage = (uint8_t)round((measuredvbat - 3.7) * 200);
-  bat_percentage = min(bat_percentage, 100);
-  if (battery_level != bat_percentage) {
-    battery_level = bat_percentage;
-  }
-  return battery_level;
-}
-
 uint32_t resolveActionForScanCodeOnActiveLayer(uint8_t scanCode) {
   int s = layer_pos;
 
@@ -468,164 +441,128 @@ uint32_t resolveActionForScanCodeOnActiveLayer(uint8_t scanCode) {
   return keymap[layer_stack[s]][scanCode];
 }
 
-#if DEBUG
-uint8_t old_battery_level;
-matrix_t last_dump;
-void dumpState(matrix_t& m, uint32_t time) {
-  if (battery_level == old_battery_level && m == last_dump) {
-    return;
-  }
-  old_battery_level = battery_level;
-  last_dump = m;
-  Serial.print("Time: ");
-  Serial.print(time);
-  Serial.print(", Battery Level: ");
-  Serial.print(battery_level);
-  Serial.println(" Matrix:");
-  for (uint8_t row = 0; row < numrows; row++) {
-    for (uint8_t col = 0; col < numcols; col++) {
-      Serial.print(!!m.get_switch(row, col), HEX);
-      Serial.print(" ");
-    }
-    Serial.println("");
-  }
-}
-
-void dumpReport(uint8_t mods, uint8_t *report, uint8_t repsize) {
-  Serial.print("mods=");
-  Serial.print(mods, HEX);
-  Serial.print(" repsize=");
-  Serial.print(repsize);
-  for (int i = 0; i < repsize; i++) {
-    Serial.print(" ");
-    Serial.print(report[i], HEX);
-  }
-  Serial.println("");
-}
-#endif
-
 void loop() {
   uint32_t now = millis();
-  matrix_t down = matrix_t::read(remoteMatrix);
+  remoteMatrix.receive(clientUart);
+  keyboard_state cur_state{lastReadLocal, now};
+  battery_level = cur_state.notify_battery(battery_level);
+
   bool keysChanged = false;
+  DBG(Serial.println("RHS State:"));
+  DBG(cur_state.dump());
+  DBG(Serial.println("LHS State:"));
+  DBG(remoteMatrix.dump());
 
-  updateRemoteMatrix();
-  uint8_t cur_battery_pct = readBattery(now);
+  /*
+    for (uint8_t rowNum = 0; rowNum < numrows; ++rowNum) {
+      for (uint8_t colNum = 0; colNum < 2 * numcols; ++colNum) {
+        scancode_t scanCode = (rowNum * 2 * numcols) + colNum;
+        bool isDown = down.rows[rowNum] & (1 << colNum);
+        bool wasDown = lastRead.rows[rowNum] & (1 << colNum);
 
-  if (cur_battery_pct != battery_level) {
-    battery.report(cur_battery_pct);
-  }
+        if (isDown == wasDown) {
+          continue;
+        }
+        keysChanged = true;
 
-  DBG(dumpState(down, now));
+        auto state = stateSlot(scanCode, now);
+        if (isDown && !state) {
+          // Silently drop this key; we're tracking too many
+          // other keys right now
+          continue;
+        }
+        DBG(printState(state));
 
-  for (uint8_t rowNum = 0; rowNum < numrows; ++rowNum) {
-    for (uint8_t colNum = 0; colNum < 2 * numcols; ++colNum) {
-      scancode_t scanCode = (rowNum * 2 * numcols) + colNum;
-      bool isDown = down.rows[rowNum] & (1 << colNum);
-      bool wasDown = lastRead.rows[rowNum] & (1 << colNum);
+        bool isTransition = false;
 
-      if (isDown == wasDown) {
-        continue;
-      }
-      keysChanged = true;
-
-      auto state = stateSlot(scanCode, now);
-      if (isDown && !state) {
-        // Silently drop this key; we're tracking too many
-        // other keys right now
-        continue;
-      }
-      DBG(printState(state));
-
-      bool isTransition = false;
-
-      if (state) {
-        if (state->scanCode == scanCode) {
-          // Update the transition time, if any
-          if (state->down != isDown) {
-            state->lastChange = now;
+        if (state) {
+          if (state->scanCode == scanCode) {
+            // Update the transition time, if any
+            if (state->down != isDown) {
+              state->lastChange = now;
+              state->down = isDown;
+              if (isDown) {
+                state->action = resolveActionForScanCodeOnActiveLayer(scanCode);
+              }
+              isTransition = true;
+            }
+          } else {
+            // We claimed a new slot, so set the transition
+            // time to the current time.
             state->down = isDown;
+            state->scanCode = scanCode;
+            state->lastChange = now;
             if (isDown) {
               state->action = resolveActionForScanCodeOnActiveLayer(scanCode);
             }
             isTransition = true;
           }
-        } else {
-          // We claimed a new slot, so set the transition
-          // time to the current time.
-          state->down = isDown;
-          state->scanCode = scanCode;
-          state->lastChange = now;
-          if (isDown) {
-            state->action = resolveActionForScanCodeOnActiveLayer(scanCode);
-          }
-          isTransition = true;
-        }
 
-        if (isTransition) {
-          switch (state->action & kMask) {
-            case kLayer:
-              if (state->down) {
-                // Push the new layer stack position
-                layer_stack[++layer_pos] = state->action & 0xff;
-              } else {
-                // Pop off the layer stack
-                --layer_pos;
-              }
-              break;
+          if (isTransition) {
+            switch (state->action & kMask) {
+              case kLayer:
+                if (state->down) {
+                  // Push the new layer stack position
+                  layer_stack[++layer_pos] = state->action & 0xff;
+                } else {
+                  // Pop off the layer stack
+                  --layer_pos;
+                }
+                break;
+            }
           }
         }
       }
     }
-  }
 
-  if (keysChanged) {
-    uint8_t report[6] = {0, 0, 0, 0, 0, 0};
-    uint8_t repsize = 0;
-    uint8_t mods = 0;
+    if (keysChanged) {
+      uint8_t report[6] = {0, 0, 0, 0, 0, 0};
+      uint8_t repsize = 0;
+      uint8_t mods = 0;
 
-    for (auto& state : keyStates) {
-      if (state.scanCode != 0xff && state.down) {
-        switch (state.action & kMask) {
-          case kTapHold:
-            if (now - state.lastChange > 200) {
-              // Holding
+      for (auto& state : keyStates) {
+        if (state.scanCode != 0xff && state.down) {
+          switch (state.action & kMask) {
+            case kTapHold:
+              if (now - state.lastChange > 200) {
+                // Holding
+                mods |= (state.action >> 16) & 0xff;
+              } else {
+                // Tapping
+                auto key = state.action & 0xff;
+                if (key != 0 && repsize < 6) {
+                  report[repsize++] = key;
+                }
+              }
+              break;
+            case kKeyAndMod: {
               mods |= (state.action >> 16) & 0xff;
-            } else {
-              // Tapping
               auto key = state.action & 0xff;
               if (key != 0 && repsize < 6) {
                 report[repsize++] = key;
               }
-            }
-            break;
-          case kKeyAndMod: {
-            mods |= (state.action >> 16) & 0xff;
-            auto key = state.action & 0xff;
-            if (key != 0 && repsize < 6) {
-              report[repsize++] = key;
-            }
-          } break;
-          case kKeyPress: {
-            auto key = state.action & 0xff;
-            if (key != 0 && repsize < 6) {
-              report[repsize++] = key;
-            }
-          } break;
-          case kModifier:
-            mods |= state.action & 0xff;
-            break;
-          case kToggleMod:
-            mods ^= state.action & 0xff;
-            break;
+            } break;
+            case kKeyPress: {
+              auto key = state.action & 0xff;
+              if (key != 0 && repsize < 6) {
+                report[repsize++] = key;
+              }
+            } break;
+            case kModifier:
+              mods |= state.action & 0xff;
+              break;
+            case kToggleMod:
+              mods ^= state.action & 0xff;
+              break;
+          }
         }
       }
+
+      DBG(dumpReport(mods, report, repsize));
+
+      hid.keyboardReport(mods, report);
+      lastRead = down;
     }
-
-    DBG(dumpReport(mods, report, repsize));
-
-    hid.keyboardReport(mods, report);
-    lastRead = down;
-  }
+    */
   waitForEvent(); // Request CPU enter low-power mode until an event occurs
 }

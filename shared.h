@@ -155,6 +155,7 @@ class keyboard_state {
         battery_level{last.battery_level},
         last_read{last.last_read} {
     update_battery(now);
+    DBG(dump());
   }
 
   // Copy Constructor
@@ -199,22 +200,50 @@ class keyboard_state {
       uint8_t data[numrows + 2];
       uint8_t cksum = 0x3a ^ HW_VAL;
       uint8_t offset = 0;
-      int val = clientUart.read();
+      int val = uart.read();
       if (val == EOF) {
         // Well, shit
         DBG(Serial.println("Unexpected EOF on Client Uart :("));
         return;
       }
-      if (val != sizeof(data)/sizeof(data[0])) {
-
+      if (val != sizeof(data) / sizeof(data[0])) {
+        DBG(printVal(val, "Unexpected packet size from remote Uart :"));
+        return;
       }
-      DBG(Serial.print("remote="));
-      DBG(Serial.print(ch, HEX));
-      DBG(Serial.println(""));
-      remoteMatrix.update(ch);
+      for (uint8_t i = 0; i < numrows; i++) {
+        val = uart.read();
+        if (val == EOF) {
+          // Well, shit
+          DBG(printVal(i, "Unexpected EOF on Client Uart before byte "));
+          return;
+        }
+        cksum = moreSum(cksum, val);
+        data[i + i] = (uint8_t)val;
+      }
+      val = uart.read();
+      if (val == EOF) {
+        DBG(Serial.println("Missing battery level in Client Uart packet."));
+      }
+      this->battery_level = (uint8_t)val;
+      val = uart.read();
+      if (val == EOF) {
+        DBG(Serial.println("Missing checksum value."));
+        return;
+      }
+      cksum = moreSum(cksum, this->battery_level);
+      if (val != cksum) {
+        DBG(printHex(val, "Bad checksum for data. Got "));
+        DBG(printHex(cksum, "But expected "));
+      }
     }
   }
 
+  uint8_t notify_battery(uint8_t prevLevel) const {
+    if (prevLevel != this->battery_level) {
+      battery.notify(this->battery_level);
+    }
+    return this->battery_level;
+  }
 #if DEBUG
   void dump() const {
     Serial.println("Switch matrix:");
