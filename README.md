@@ -2,11 +2,11 @@
 
 Stuff for a fully wireless ErgoDox based on a
 [Gist](https://gist.github.com/wez/b30683a4dfa329b86b9e0a2811a8c593) from the
-fabulous Wez Furlong (@wez).  If you read his Gist, he explains some of this.
-I'm going to document what I'm doing as I go.
+fabulous Wez Furlong. If you read his Gist, he explains some of this. I'm going
+to document what I'm doing as I go.
 
 This is my first time doing anything real with Arduino or low level electronics
-at all. so some of this stuff will be absurdly more detailed that it probably
+at all, so some of this stuff will be absurdly more detailed that it probably
 needs to be, but I'm also an experienced software developer, so I'll gloss over
 a bunch of stuff that seems simple to me (but may not be to you, dear reader).
 Apologies in advance...
@@ -84,7 +84,7 @@ do this.
 
 It has occurred to me that I might be able to cannibalize the ErgoDox PCB's for
 some/all of the wiring, but that just seems like a pain, and I'm not ready to
-destroy one yet.  (Update: I could totally see myself destroying one now, but I
+destroy one yet. (Update: I could totally see myself destroying one now, but I
 think I'm going to try using my CNC to make a PCB for a future evolution of this
 project.)
 
@@ -131,7 +131,7 @@ underside of the wrist rest. Time to spin up the CNC machine.
 
 >I have an [E3 CNC from BobsCNC](https://www.bobscnc.com). They kit came with a
 damanged piece, which they replaced quickly after a quick conversation on FB
-Messenger.  The device itself is capable, but it's clearly focused on simple
+Messenger. The device itself is capable, but it's clearly focused on simple
 engraving kind of stuff. The router is a wee bit under powered, but the real
 issue is that the gantry (look, Ma, official words!) is just not sturdy enough
 to handle something more powerful, so it results in things taking a *long* time
@@ -200,6 +200,10 @@ think I'll have to change *anything* on the left hand side now. I also really
 hate doing anything significant with the preprocessor, so I might try to make
 something a bit more C++-ish with the actual keymapping code.
 
+Update: Hahaha. Wez clearly knew what he was doing, because sometimes that stupid 6 byte payload gets cut down to only about 4 bytes, thereby messing things up. I'll have to go back to just sending keycodes. I'd still like to try to report battery data for the left side. No matter: I've currently got a pretty much fully functional keyboard (without any of my fancy extras), so I'm going to call it a night (and a weekend). The code seems to work alright, though it might be just a tad laggy. No more wires on my desktop for my keyboard! W00t! (And yes, I noticed that I messed up the V and C keys, but my fingers know which is which, and I'm going to switch the keycaps with my old monstrosity anyway, so I'll fix that soon enough...)
+
+![NO WIRES!](no-wires.jpg)
+
 ## Future Plans
 
 * Add an on/off switch to conserve battery (but only if it's worth while)
@@ -219,7 +223,7 @@ something a bit more C++-ish with the actual keymapping code.
 ## Next project
 This has been super fun. Once I'm done with this project, I'm going to try to
 make a fully custom keyboard with a PCB that I mill on my CNC, with a purple
-heart hardwood case.  The primary complaint I have about my ErgoDox is the lack
+heart hardwood case. The primary complaint I have about my ErgoDox is the lack
 of a decent place to put a set of arrow keys. I'm going to try to address that
 and maybe shrink the thumb cluster and remove the extra index-finger row. Wish
 me luck!

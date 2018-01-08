@@ -11,7 +11,7 @@ void setup() {
   Bluefruit.begin();
   Bluefruit.autoConnLed(false);
   Bluefruit.setTxPower(0);
-  Bluefruit.setName(BT_NAME "-LHS");
+  Bluefruit.setName(LHS_NAME);
 
   bledis.setManufacturer(MANUFACTURER);
   bledis.setModel(MODEL);

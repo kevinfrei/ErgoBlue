@@ -6,14 +6,32 @@
 
 #if DEBUG
 #define DBG(a) a
+
+void dumpVal(unsigned long v, const char* header = nullptr) {
+  if (header)
+    Serial.print(header);
+  Serial.println(v);
+}
+void dumpHex(unsigned long v, const char* header = nullptr) {
+  if (header)
+    Serial.print(header);
+  Serial.println(v, HEX);
+}
+#if DEBUG == 2
+#define DBG2(a) a
+#else
+#define DBG2(a)
+#endif
 #else
 #define DBG(a)
+#define DBG2(a)
 #endif
 
 #define MANUFACTURER "FreikyStuff"
 #define MODEL "BlErgoDox"
 #define BT_NAME "BlErgoDox"
 #define HW_REV "0000"
+#define LHS_NAME BT_NAME "-LHS"
 
 // These numbers correspond to the *port pin* numbers in the nRF52 documentation
 // not the physical pin numbers...
@@ -23,36 +41,13 @@ constexpr uint8_t rowPins[] = {2, 3, 4, 5, 28};
 constexpr uint8_t numcols = sizeof(colPins) / sizeof(*colPins);
 constexpr uint8_t numrows = sizeof(rowPins) / sizeof(*rowPins);
 
-constexpr int VBAT = 31; // pin 31 is available for sampling the battery
+constexpr uint8_t VBAT = 31; // pin 31 is available for sampling the battery
 
 // Some globals for both sides of the keybaord...
 uint8_t battery_level = 0;
 uint32_t last_bat_time = 0;
 
 uint8_t readBattery(uint32_t now, const struct hwstate& prev);
-
-template <typename T>
-struct matrix_type {
-  T rows[numrows];
-  matrix_type() {
-    memset(&rows, 0, sizeof(rows));
-  };
-  T get_switch(uint8_t row, uint8_t col) const {
-    return rows[row] & (1 << col);
-  }
-  static matrix_type<T> read(matrix_type<T> matrix = matrix_type<T>{}) {
-    for (uint8_t colNum = 0; colNum < numcols; ++colNum) {
-      digitalWrite(colPins[colNum], LOW);
-      for (uint8_t rowNum = 0; rowNum < numrows; ++rowNum) {
-        if (!digitalRead(rowPins[rowNum])) {
-          matrix.rows[rowNum] |= 1 << colNum;
-        }
-      }
-      digitalWrite(colPins[colNum], HIGH);
-    }
-    return matrix;
-  }
-};
 
 struct hwstate {
   uint8_t switches[numrows];
@@ -76,18 +71,24 @@ struct hwstate {
   }
   hwstate(BLEClientUart& clientUart, const hwstate& prev) {
     if (clientUart.available()) {
-      int size = clientUart.read((uint8_t*)this, sizeof(*this));
+      uint8_t buffer[sizeof(hwstate)];
+      int size = clientUart.read(buffer, sizeof(hwstate));
+      if (size == sizeof(hwstate)) {
+        memcpy(reinterpret_cast<uint8_t*>(this), buffer, sizeof(hwstate));
+      } else {
 #if DEBUG
-      if (size != sizeof(hwstate)) {
+        // NOTE: This fires occasionally when button mashing on the left, so
+        // perhaps I shouldn't have changed this just on a whim. Wez clearly
+        // knew what he was doing :)
         Serial.print("Incorrect datagram size:");
         Serial.print(" expected ");
         Serial.print(sizeof(hwstate));
         Serial.print(" got ");
         Serial.println(size);
-      }
 #endif
+      }
     } else {
-      memcpy(this, &prev, sizeof(*this));
+      memcpy(reinterpret_cast<uint8_t*>(this), &prev, sizeof(hwstate));
     }
   }
 
@@ -98,6 +99,14 @@ struct hwstate {
 
   bool operator!=(const hwstate& o) {
     return !((*this) == o);
+  }
+
+  uint64_t toUI64() {
+    uint64_t res = 0;
+    for (int i = numrows - 1; i >= 0; i--) {
+      res = res * 256 + switches[i];
+    }
+    return res;
   }
 
 #if DEBUG
@@ -129,8 +138,8 @@ uint8_t readBattery(uint32_t now, const hwstate& prev) {
   uint8_t bat_percentage = (uint8_t)round((measuredvbat - 3.7) * 200);
   bat_percentage = min(bat_percentage, 100);
   if (prev.battery_level != bat_percentage) {
-    DBG(Serial.print("Battery level: "));
-    DBG(Serial.println(battery_level));
+    DBG2(Serial.print("Battery level: "));
+    DBG2(Serial.println(battery_level));
   }
   return bat_percentage;
 }
