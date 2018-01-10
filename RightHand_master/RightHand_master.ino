@@ -169,6 +169,7 @@ constexpr uint32_t kLayer = 0x300;
 constexpr uint32_t kTapHold = 0x400;
 constexpr uint32_t kToggleMod = 0x500;
 constexpr uint32_t kKeyAndMod = 0x600;
+constexpr uint32_t kConsumer = 0x800;
 
 #define PASTE(a, b) a##b
 
@@ -176,6 +177,8 @@ constexpr uint32_t kKeyAndMod = 0x600;
 #define KEY(a) kKeyPress | PASTE(HID_KEY_, a)
 #define MOD(a) kModifier | PASTE(KEYBOARD_MODIFIER_, a)
 #define TMOD(a) kToggleMod | PASTE(KEYBOARD_MODIFIER_, a)
+#define CONS(a) kConsumer | a
+
 #define TAPH(a, b) \
   kTapHold | PASTE(HID_KEY_, a) | (PASTE(KEYBOARD_MODIFIER_, b) << 16)
 #define KANDMOD(a, b) \
@@ -252,12 +255,14 @@ struct keystate* findStateSlot(uint8_t scanCode) {
 
 // Some missing keycodes from the Arduino/AdaFruit API's that I need
 // HINT: You can find these from the QMK firmware HIDClassCommon.h file :)
-#define HID_KEY_M_PLAY 0xE8
-#define HID_KEY_M_PREVIOUS_TRACK 0xEA
-#define HID_KEY_M_NEXT_TRACK 0xEB
-#define HID_KEY_M_VOLUME_UP 0xED
-#define HID_KEY_M_VOLUME_DOWN 0xEE
-#define HID_KEY_M_MUTE 0xEF
+#define HID_KEY_M_PLAY 0xCD
+#define HID_KEY_M_PREVIOUS_TRACK 0xB6
+#define HID_KEY_M_NEXT_TRACK 0xB5
+
+#define HID_KEY_M_VOLUME_UP 0x80
+#define HID_KEY_M_VOLUME_DOWN 0x81
+#define HID_KEY_M_MUTE 0x7F
+
 #define HID_KEY_M_BACKWARD 0xF1
 #define HID_KEY_M_FORWARD 0xF2
 #define HID_KEY_M_SLEEP 0xF8
@@ -293,15 +298,22 @@ struct keystate* findStateSlot(uint8_t scanCode) {
 #define M_MUTE KEY(M_MUTE)
 #define M_VOLU KEY(M_VOLUME_UP)
 #define M_VOLD KEY(M_VOLUME_DOWN)
-#define M_PREV KEY(M_PREVIOUS_TRACK)
-#define M_NEXT KEY(M_NEXT_TRACK)
+
+// Some of these are available as symbols in the AdaFruit API, but I'm just
+// using them as they exist from IOHIDUsageTable.h from the IOHIDFamily source
+// code available at www.opensource.apple.com.  I'm pretty sure similar stuff is
+// available for Windows, too, somewhere (probably in MSDN docs)
+#define M_PLAY CONS(0xcd)
+#define M_PREV CONS(0xb6)
+#define M_NEXT CONS(0xb5)
 
 const action_t keymap[][numcols * numrows * 2] = {
     {LROW1(KEY(ESCAPE), KEY(1), KEY(2), KEY(3), KEY(4), KEY(5), M_VOLD),
-     LROW2(KEY(TAB), KEY(Q), KEY(W), KEY(E), KEY(R), KEY(T), KEY(M_PLAY)),
+     LROW2(KEY(TAB), KEY(Q), KEY(W), KEY(E), KEY(R), KEY(T), M_PLAY),
      LROW3(LCMD, KEY(A), KEY(S), KEY(D), KEY(F), KEY(G), KEY(GRAVE), LCMD),
      LROW4(LSHFT, KEY(Z), KEY(X), KEY(C), KEY(V), KEY(B), M_PREV, KEY(HOME)),
      LROW5(LCTL, LOPT, LCMD, M_MUTE, KEY(OBRC), KEY(BKSP), KEY(DEL), KEY(END)),
+
      RROW1(M_VOLU, KEY(6), KEY(7), KEY(8), KEY(9), KEY(0), KEY(MINUS)),
      RROW2(ROPT, KEY(Y), KEY(U), KEY(I), KEY(O), KEY(P), KEY(BACKSLASH)),
      RROW3(RCMD, KEY(EQUAL), KEY(H), KEY(J), KEY(K), KEY(L), SEMI_, QUOTE_),
@@ -466,7 +478,23 @@ void loop() {
     uint8_t mods = 0;
 
     for (auto& state : keyStates) {
-      if (state.scanCode != 0xff && state.down) {
+      if (state.scanCode == 0xff)
+        continue;
+      if ((state.action & kConsumer) == kConsumer) {
+        // For a consumer control button, there are no modifiers, it's
+        // just a simple call. So just call it directly:
+        if (state.down) {
+          DBG(dumpHex(state.action & 0xff, "Consumer key press: "));
+          hid.consumerKeyPress(state.action & 0xff);
+        } else {
+          DBG(dumpHex(state.action & 0xff, "Consumer key release: "));
+          hid.consumerKeyRelease();
+          // We have to clear this thing out when we're done, because we take
+          // action on the key release as well. We don't do this for the normal
+          // keyboardReport.
+          state.scanCode = 0xff;
+        }
+      } else if (state.down) {
         switch (state.action & kMask) {
           case kTapHold:
             if (now - state.lastChange > 200) {

@@ -39,13 +39,15 @@ also firmer than Cherry Brown's, so I'm gonna try the Zealios Purple's on the
 main keys, and the Clear's on the thumb clusters.
 1. **Key Caps.** I have a bunch of these hanging around, because *I have a
 problem*.
-1. **A [MicroUSB Cable](http://a.co/31KmMeQ) or two.** Find one in a drawer somewhere. These things are everywhere, like Easter grass or Christmas Tree
+1. **A [MicroUSB Cable](http://a.co/31KmMeQ) or two.** Find one in a drawer
+somewhere. These things are everywhere, like Easter grass or Christmas Tree
 tinsel. They multiply when out of sight, like a weird combination of rabbits,
 and Weeping Angels.
 1. **Some kind of case that works**. For me, I bought a chunk of maple and used
 Autodesk Fusion360 to model a nice case with spots for the AdaFruit board and
 the batteries, because I have a little CNC machine. Given that we don't have the
-PCB layer from the original ErgoDox Infinity, I suspect you could do something with that case if you tried.
+PCB layer from the original ErgoDox Infinity, I suspect you could do something
+with that case if you tried.
 
 ## Getting started
 To use the AdaFruit devices, I had to download an older version (1.6.14) of the
@@ -178,9 +180,13 @@ doesn't work anymore :(. I keep the batteries in place with just a little black
 wire tie that you can find in a drawer or on a shelf, or where ever electronic
 cables are sold. I was using #4 3/8" screws everywhere, though the heads are
 bigger than necessary (thus causing the crushed LED). I predrilled everywhere
-because maple is hard, and the case might crack if I didn't. After than I hot-glued the living crap of the thing. I still expect that pulling keycaps off risky (which I'm going to risk, anyway, because I prefer my XDA Canvas keycaps over the DSA Granite ones I put on this thing while still 'in development').
+because maple is hard, and the case might crack if I didn't. After than I
+hot-glued the living crap of the thing. I still expect that pulling keycaps off
+risky (which I'm going to risk, anyway, because I prefer my XDA Canvas keycaps
+over the DSA Granite ones I put on this thing while still 'in development').
 
-Here's a nice picture of it after all the 'hardware' parts of the project are complete. The only thing I haven't done is seal the little hinged legs.
+Here's a nice picture of it after all the 'hardware' parts of the project are
+complete. The only thing I haven't done is seal the little hinged legs.
 
 ![Seedy Underbelly](wired-underbelly.jpg)
 
@@ -200,8 +206,16 @@ think I'll have to change *anything* on the left hand side now. I also really
 hate doing anything significant with the preprocessor, so I might try to make
 something a bit more C++-ish with the actual keymapping code.
 
-Update: Hahaha. Wez clearly knew what he was doing, because sometimes that stupid 6 byte payload gets cut down to only about 4 bytes, thereby messing things up. I'll have to go back to just sending keycodes. I'd still like to try to report battery data for the left side. No matter: I've currently got a pretty much fully functional keyboard (without any of my fancy extras), so I'm going to call it a night (and a weekend). The code seems to work alright, though it might be just a tad laggy. No more wires on my desktop for my keyboard! W00t! (And yes, I noticed that I messed up the V and C keys, but my fingers know which is which, and I'm going to switch the keycaps with my old monstrosity anyway, so I'll fix that soon enough...)
-
+Update: Hahaha. Wez clearly knew what he was doing, because sometimes that
+stupid 6 byte payload gets cut down to only about 4 bytes, thereby messing
+things up. I'll have to go back to just sending keycodes. I'd still like to try
+to report battery data for the left side. No matter: I've currently got a pretty
+much fully functional keyboard (without any of my fancy extras), so I'm going to
+call it a night (and a weekend). The code seems to work alright, though it might
+be just a tad laggy. No more wires on my desktop for my keyboard! W00t! (And
+yes, I noticed that I messed up the V and C keys, but my fingers know which is
+which, and I'm going to switch the keycaps with my old monstrosity anyway, so
+I'll fix that soon enough
 ![NO WIRES!](no-wires.jpg)
 
 ## Future Plans
@@ -213,12 +227,17 @@ Update: Hahaha. Wez clearly knew what he was doing, because sometimes that stupi
 
 **Useful links**
 
-* [Matt3o's writeup of the BrownFox, the precursor to my wonderful WhiteFox.](https://deskthority.net/workshop-f7/brownfox-step-by-step-t6050.html)
+* [Matt3o's writeup of the BrownFox, the precursor to my wonderful
+WhiteFox.](https://deskthority.net/workshop-f7/brownfox-step-by-step-t6050.html)
 
 **AdaFruit links**
-* [AdaFruit's Feather examples.](https://github.com/adafruit/Adafruit_nRF52_Arduino/tree/master/libraries/Bluefruit52Lib/examples)
-* [AdaFruit's nRF52 Learning Guide.](https://learn.adafruit.com/bluefruit-nrf52-feather-learning-guide/)
-* [AdaFruit nRF52 Pinout.](https://learn.adafruit.com/bluefruit-nrf52-feather-learning-guide/device-pinout)
+
+* [AdaFruit's Feather
+  examples.](https://github.com/adafruit/Adafruit_nRF52_Arduino/tree/master/libraries/Bluefruit52Lib/examples)
+* [AdaFruit's nRF52 Learning
+  Guide.](https://learn.adafruit.com/bluefruit-nrf52-feather-learning-guide/)
+* [AdaFruit nRF52
+  Pinout.](https://learn.adafruit.com/bluefruit-nrf52-feather-learning-guide/device-pinout)
 
 ## Next project
 This has been super fun. Once I'm done with this project, I'm going to try to

@@ -56,18 +56,23 @@ struct hwstate {
   hwstate(uint8_t bl = 0) : battery_level(bl) {
     memset(switches, 0, sizeof(switches));
   }
+  // TODO: Add debouncing for reading from the switches
   hwstate(uint32_t now, const hwstate& prev)
       : battery_level(readBattery(now, prev)) {
     memset(switches, 0, sizeof(switches));
     for (uint8_t colNum = 0; colNum < numcols; ++colNum) {
+      uint8_t val = 1 << colNum;
       digitalWrite(colPins[colNum], LOW);
+      delayMicroseconds(15);
       for (uint8_t rowNum = 0; rowNum < numrows; ++rowNum) {
         if (!digitalRead(rowPins[rowNum])) {
-          switches[rowNum] |= 1 << colNum;
+          switches[rowNum] |= val;
         }
       }
       digitalWrite(colPins[colNum], HIGH);
     }
+    // TODO: If we're not done debouncing, delay(1), otherwise, copy the final
+    // result into the destination matrix
   }
   hwstate(BLEClientUart& clientUart, const hwstate& prev) {
     if (clientUart.available()) {

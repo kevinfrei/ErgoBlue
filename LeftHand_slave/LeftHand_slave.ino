@@ -1,7 +1,5 @@
 #include "shared.h"
 
-using matrix_t = matrix_type<scancode_t>;
-
 BLEDis bledis;
 BLEUart bleuart;
 hwstate lastRead{};
