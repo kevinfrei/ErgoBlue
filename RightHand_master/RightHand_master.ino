@@ -1,5 +1,9 @@
 #include "shared.h"
 
+#include "keystate.h"
+#include "keyhelpers.h"
+#include "keymap.h"
+
 // Globals
 BLEDis dis;
 BLEHidAdafruit hid;
@@ -15,7 +19,6 @@ void cent_connect_callback(uint16_t conn_handle);
 void cent_disconnect_callback(uint16_t conn_handle, uint8_t reason);
 void scan_callback(ble_gap_evt_adv_report_t* report);
 void startAdv();
-uint32_t resolveActionForScanCodeOnActiveLayer(uint8_t scanCode);
 
 // In Arduino world the 'setup' function is called to initialize the device.
 // The 'loop' function is called over & over again, after setup completes.
@@ -116,97 +119,6 @@ void startAdv(void) {
   Bluefruit.Advertising.start(0); // 0 = Don't stop advertising after n seconds
 }
 
-using action_t = uint32_t;
-
-struct keystate {
-  uint32_t lastChange;
-  action_t action;
-  scancode_t scanCode;
-  bool down;
-  bool update(scancode_t sc, bool pressed, uint32_t now) {
-    if (scanCode == sc) {
-      // Update the transition time, if any
-      if (down != pressed) {
-        lastChange = now;
-        down = pressed;
-        if (pressed) {
-          action = resolveActionForScanCodeOnActiveLayer(scanCode);
-        }
-        return true;
-      }
-    } else {
-      // We claimed a new slot, so set the transition
-      // time to the current time.
-      down = pressed;
-      scanCode = sc;
-      lastChange = now;
-      if (pressed) {
-        action = resolveActionForScanCodeOnActiveLayer(scanCode);
-      }
-      return true;
-    }
-    return false;
-  };
-#if DEBUG
-  void dump() const {
-    Serial.print("ScanCode=");
-    Serial.print(scanCode, HEX);
-    Serial.print(" down=");
-    Serial.print(down);
-    Serial.print(" lastChange=");
-    Serial.print(lastChange);
-    Serial.print(" action=");
-    Serial.print(action, HEX);
-    Serial.println("");
-  };
-#endif
-};
-
-constexpr uint32_t kMask = 0xf00;
-constexpr uint32_t kKeyPress = 0x100;
-constexpr uint32_t kModifier = 0x200;
-constexpr uint32_t kLayer = 0x300;
-constexpr uint32_t kTapHold = 0x400;
-constexpr uint32_t kToggleMod = 0x500;
-constexpr uint32_t kKeyAndMod = 0x600;
-constexpr uint32_t kConsumer = 0x800;
-
-#define PASTE(a, b) a##b
-
-#define ___ 0
-#define KEY(a) kKeyPress | PASTE(HID_KEY_, a)
-#define MOD(a) kModifier | PASTE(KEYBOARD_MODIFIER_, a)
-#define TMOD(a) kToggleMod | PASTE(KEYBOARD_MODIFIER_, a)
-#define CONS(a) kConsumer | a
-
-#define TAPH(a, b) \
-  kTapHold | PASTE(HID_KEY_, a) | (PASTE(KEYBOARD_MODIFIER_, b) << 16)
-#define KANDMOD(a, b) \
-  kKeyAndMod | PASTE(HID_KEY_, a) | (PASTE(KEYBOARD_MODIFIER_, b) << 16)
-#define LAYER(n) kLayer | n
-
-#define LROW1(l00, l01, l02, l03, l04, l05, l06) \
-  ___, l06, l05, l04, l03, l02, l01, l00
-#define LROW2(l10, l11, l12, l13, l14, l15, l16) \
-  ___, l16, l15, l14, l13, l12, l11, l10
-#define LROW3(l20, l21, l22, l23, l24, l25, l26, lt01) \
-  lt01, l26, l25, l24, l23, l22, l21, l20
-#define LROW4(l30, l31, l32, l33, l34, l35, lt00, lt12) \
-  lt12, lt00, l35, l34, l33, l32, l31, l30
-#define LROW5(l40, l41, l42, l43, l44, lt10, lt11, lt22) \
-  lt22, lt11, lt10, l44, l43, l42, l41, l40
-
-#define RROW1(r00, r01, r02, r03, r04, r05, r06) \
-  r06, r05, r04, r03, r02, r01, r00, ___
-#define RROW2(r10, r11, r12, r13, r14, r15, r16) \
-  r16, r15, r14, r13, r12, r11, r10, ___
-#define RROW3(rt00, r20, r21, r22, r23, r24, r25, r26) \
-  r26, r25, r24, r23, r22, r21, r20, rt00
-#define RROW4(rt10, rt01, r31, r32, r33, r34, r35, r36) \
-  r36, r35, r34, r33, r32, r31, rt01, rt10
-#define RROW5(rt20, rt11, rt12, r42, r43, r44, r45, r46) \
-  r46, r45, r44, r43, r42, rt12, rt11, rt20
-
 keystate keyStates[16];
 uint8_t layer_stack[8];
 uint8_t layer_pos = 0;
@@ -253,77 +165,10 @@ struct keystate* findStateSlot(uint8_t scanCode) {
   return reap;
 }
 
-// Some missing keycodes from the Arduino/AdaFruit API's that I need
-// HINT: You can find these from the QMK firmware HIDClassCommon.h file :)
-#define HID_KEY_M_PLAY 0xCD
-#define HID_KEY_M_PREVIOUS_TRACK 0xB6
-#define HID_KEY_M_NEXT_TRACK 0xB5
-
-#define HID_KEY_M_VOLUME_UP 0x80
-#define HID_KEY_M_VOLUME_DOWN 0x81
-#define HID_KEY_M_MUTE 0x7F
-
-#define HID_KEY_M_BACKWARD 0xF1
-#define HID_KEY_M_FORWARD 0xF2
-#define HID_KEY_M_SLEEP 0xF8
-#define HID_KEY_M_LOCK 0xF9
-
-// Some stuff to make the action maps prettier
-#define LCMD MOD(LEFTGUI)
-#define LSHFT MOD(LEFTSHIFT)
-#define LCTL MOD(LEFTCTRL)
-#define LOPT MOD(LEFTALT)
-#define RCMD MOD(RIGHTGUI)
-#define RSHFT MOD(LEFTSHIFT)
-#define RCTL MOD(RIGHTSHIFT)
-#define ROPT MOD(RIGHTALT)
-
-#define GRV GRAVE
-#define OBRC BRACKET_LEFT
-#define CBRC BRACKET_RIGHT
-#define BKSP BACKSPACE
-#define DEL DELETE
-#define PGUP PAGE_UP
-#define PGDN PAGE_DOWN
-#define SEMI_ KEY(SEMICOLON)
-#define COMMA_ KEY(COMMA)
-#define DOT_ KEY(PERIOD)
-#define QUOTE_ KEY(APOSTROPHE)
-#define ENTER_ KEY(RETURN)
-#define UP_ KEY(ARROW_UP)
-#define DOWN_ KEY(ARROW_DOWN)
-#define LEFT_ KEY(ARROW_LEFT)
-#define RIGHT_ KEY(ARROW_RIGHT)
-#define SPACE_ KEY(SPACE)
-#define M_MUTE KEY(M_MUTE)
-#define M_VOLU KEY(M_VOLUME_UP)
-#define M_VOLD KEY(M_VOLUME_DOWN)
-
-// Some of these are available as symbols in the AdaFruit API, but I'm just
-// using them as they exist from IOHIDUsageTable.h from the IOHIDFamily source
-// code available at www.opensource.apple.com.  I'm pretty sure similar stuff is
-// available for Windows, too, somewhere (probably in MSDN docs)
-#define M_PLAY CONS(0xcd)
-#define M_PREV CONS(0xb6)
-#define M_NEXT CONS(0xb5)
-
-const action_t keymap[][numcols * numrows * 2] = {
-    {LROW1(KEY(ESCAPE), KEY(1), KEY(2), KEY(3), KEY(4), KEY(5), M_VOLD),
-     LROW2(KEY(TAB), KEY(Q), KEY(W), KEY(E), KEY(R), KEY(T), M_PLAY),
-     LROW3(LCMD, KEY(A), KEY(S), KEY(D), KEY(F), KEY(G), KEY(GRAVE), LCMD),
-     LROW4(LSHFT, KEY(Z), KEY(X), KEY(C), KEY(V), KEY(B), M_PREV, KEY(HOME)),
-     LROW5(LCTL, LOPT, LCMD, M_MUTE, KEY(OBRC), KEY(BKSP), KEY(DEL), KEY(END)),
-
-     RROW1(M_VOLU, KEY(6), KEY(7), KEY(8), KEY(9), KEY(0), KEY(MINUS)),
-     RROW2(ROPT, KEY(Y), KEY(U), KEY(I), KEY(O), KEY(P), KEY(BACKSLASH)),
-     RROW3(RCMD, KEY(EQUAL), KEY(H), KEY(J), KEY(K), KEY(L), SEMI_, QUOTE_),
-     RROW4(KEY(PGUP), M_NEXT, KEY(N), KEY(M), COMMA_, DOT_, KEY(SLASH), RSHFT),
-     RROW5(KEY(PGDN), ENTER_, SPACE_, KEY(CBRC), LEFT_, UP_, DOWN_, RIGHT_)}};
-
-uint32_t resolveActionForScanCodeOnActiveLayer(uint8_t scanCode) {
+action_t resolveActionForScanCodeOnActiveLayer(uint8_t scanCode) {
   int s = layer_pos;
 
-  while (s >= 0 && keymap[layer_stack[s]][scanCode] == ___) {
+  while (s > 0 && keymap[layer_stack[s]][scanCode] == ___) {
     --s;
   }
   return keymap[layer_stack[s]][scanCode];
@@ -355,7 +200,7 @@ void dumpScanCode(uint8_t sc, bool pressed) {
 #endif
 
 void loop() {
-  uint32_t now = millis();
+  uint32_t now = micros();
 
   // Get the hardware state for the two sides...
   hwstate downRight{now, rightSide};
@@ -386,8 +231,8 @@ void loop() {
     if (deltaLeft) {
       sc = getNextScanCode(deltaLeft, afterLeft, pressed);
     } else {
-      // Add 40 to the right scan code...
-      sc = getNextScanCode(deltaRight, afterRight, pressed) + 8 * numrows;
+      // Add offset to the right scan code...
+      sc = getNextScanCode(deltaRight, afterRight, pressed) + numcols * numrows;
     }
     DBG(dumpScanCode(sc, pressed));
 
