@@ -199,10 +199,13 @@ And here's a top view:
 **Currently supported features**
 * Layers (up to 8 active at any point)
 * Layer shifting, Layer toggling, and layer switching
+* If you hit both shift keys, and the keys immediately below at the same time,
+  you'll get a battery report typed out to the text console. I plan on adding
+  more diagnostics (Layer stack info, anything else useful) as time goes on.
 
 **Features I plan on adding**
-* Key actions that are modifier sets + key presses
-* And 'output info' capability if you hit a particular set of keys
+* Key actions that are modifier sets + key presses (I think this exists already,
+  but I haven't really looked at Wez's code in enough detail)
 
 I'm logging what I'm doing here, paragraph by paragraph.
 
