@@ -19,6 +19,8 @@ void cent_connect_callback(uint16_t conn_handle);
 void cent_disconnect_callback(uint16_t conn_handle, uint8_t reason);
 void scan_callback(ble_gap_evt_adv_report_t* report);
 void startAdv();
+void type_string(const char* str);
+void type_number(uint32_t val);
 
 // In Arduino world the 'setup' function is called to initialize the device.
 // The 'loop' function is called over & over again, after setup completes.
@@ -260,8 +262,8 @@ void loop() {
   // Update the combined battery level
   if (downRight.battery_level != rightSide.battery_level ||
       downLeft.battery_level != leftSide.battery_level) {
-    // We only get the battery level once you hit a key, so only report it if we
-    // have something to actually report
+    // We only get the battery level from the left side once you hit a key, so
+    // only report it if we have something to actually report
     if (downLeft.battery_level) {
       battery.notify((downRight.battery_level + downLeft.battery_level) / 2);
     } else {
@@ -389,12 +391,85 @@ void loop() {
     DBG2(Serial.println("============================="));
     DBG2(Serial.print("Left side "));
     DBG2(downLeft.dump());
+    DBG2(hwstate::swdmp(downLeft.switches));
     DBG2(Serial.print("Right side "));
     DBG2(downRight.dump());
+    DBG2(hwstate::swdmp(downRight.switches));
 
     // Update the hardware previous state
     rightSide = downRight;
     leftSide = downLeft;
+
+    // Check for hardware request thingamajig:
+    // This is hard coded, mostly because I'm just hacking
+    if (!leftSide.switches[0] && !leftSide.switches[1] &&
+        !leftSide.switches[2] && leftSide.switches[3] == 0x80 &&
+        leftSide.switches[4] == 0x80 && !rightSide.switches[0] &&
+        !rightSide.switches[1] && !rightSide.switches[2] &&
+        rightSide.switches[3] == 1 && rightSide.switches[4] == 1) {
+      type_string("Left Battery level ");
+      type_number(leftSide.battery_level);
+      type_string("\nRight battery level ");
+      type_number(rightSide.battery_level);
+    }
   }
   waitForEvent(); // Request CPU enter low-power mode until an event occurs
+}
+
+// A very limited version of typing the string
+// It dumps lower case, nubmers, and spaces, and periods for everything else
+void type_string(const char* str) {
+  uint8_t console[6] = {0, 0, 0, 0, 0, 0};
+  char p = 0;
+  while (*str) {
+    char c = *str++;
+    char n = 0;
+    if (c >= 'a' && c <= 'z')
+      n = HID_KEY_A + c - 'a';
+    else if (c >= 'A' && c <= 'Z')
+      n = HID_KEY_A + c - 'A';
+    else if (c >= '1' && c <= '9')
+      n = HID_KEY_1 + c - '1';
+    else if (c == '0')
+      n = HID_KEY_0;
+    else if (c == ' ')
+      n = HID_KEY_SPACE;
+    else if (c == '\n' || c == '\r')
+      n = HID_KEY_RETURN;
+    else
+      n = HID_KEY_PERIOD;
+    if (n == p) {
+      console[0] = 0;
+      hid.keyboardReport(0, console);
+    }
+    console[0] = n;
+    hid.keyboardReport(0, console);
+    p = n;
+  }
+}
+
+void type_number(uint32_t val) {
+  int p = -1;
+  char buffer[25];
+  int curPos = 0;
+  do {
+    int v;
+    int digit = val % 10;
+    val = val / 10;
+    if (digit == 0) {
+      v = HID_KEY_0;
+    } else {
+      v = HID_KEY_1 - 1 + digit;
+    }
+    if (v == p) {
+      buffer[curPos++] = 0;
+    }
+    buffer[curPos++] = v;
+    p = v;
+  } while (val);
+  uint8_t console[6] = {0, 0, 0, 0, 0, 0};
+  do {
+    console[0] = buffer[--curPos];
+    hid.keyboardReport(0, console);
+  } while (curPos);
 }
