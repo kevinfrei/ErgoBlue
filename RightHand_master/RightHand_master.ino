@@ -253,7 +253,7 @@ void layer_switch(layer_t layer) {
 }
 
 void loop() {
-  uint32_t now = micros();
+  uint32_t now = millis();
 
   // Get the hardware state for the two sides...
   hwstate downRight{now, rightSide};
@@ -411,13 +411,21 @@ void loop() {
       type_number(leftSide.battery_level);
       type_string("\nRight battery level ");
       type_number(rightSide.battery_level);
+      type_string("\nLayer Stack; ");
+      for (int i = 0; i <= layer_pos; i++) {
+        type_number(i);
+        type_string("; ");
+        type_string(layer_names[layer_stack[i]]);
+        type_string(", ");
+      }
+      type_string("\n");
     }
   }
   waitForEvent(); // Request CPU enter low-power mode until an event occurs
 }
 
-// A very limited version of typing the string
-// It dumps lower case, nubmers, and spaces, and periods for everything else
+// A very limited version of typing the string. It dumps lower case, nubmers,
+// a few other things, defaults to '.' for everything else.
 void type_string(const char* str) {
   uint8_t console[6] = {0, 0, 0, 0, 0, 0};
   char p = 0;
@@ -430,14 +438,29 @@ void type_string(const char* str) {
       n = HID_KEY_A + c - 'A';
     else if (c >= '1' && c <= '9')
       n = HID_KEY_1 + c - '1';
-    else if (c == '0')
-      n = HID_KEY_0;
-    else if (c == ' ')
-      n = HID_KEY_SPACE;
-    else if (c == '\n' || c == '\r')
-      n = HID_KEY_RETURN;
-    else
-      n = HID_KEY_PERIOD;
+    else {
+      switch (c) {
+        case '0':
+          n = HID_KEY_0;
+          break;
+        case ' ':
+          n = HID_KEY_SPACE;
+          break;
+        case '\n':
+        case '\r':
+          n = HID_KEY_RETURN;
+          break;
+        case ':':
+        case ';':
+          n = HID_KEY_SEMICOLON;
+          break;
+        case ',':
+          n = HID_KEY_COMMA;
+          break;
+        default:
+          n = HID_KEY_PERIOD;
+      }
+    }
     if (n == p) {
       console[0] = 0;
       hid.keyboardReport(0, console);
@@ -446,6 +469,9 @@ void type_string(const char* str) {
     hid.keyboardReport(0, console);
     p = n;
   }
+  // Clear any final key out, just to be safe
+  console[0] = 0;
+  hid.keyboardReport(0, console);
 }
 
 void type_number(uint32_t val) {
@@ -472,4 +498,7 @@ void type_number(uint32_t val) {
     console[0] = buffer[--curPos];
     hid.keyboardReport(0, console);
   } while (curPos);
+  // Clear any final key out, just to be safe
+  console[0] = 0;
+  hid.keyboardReport(0, console);
 }

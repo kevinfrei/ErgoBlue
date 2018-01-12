@@ -30,11 +30,11 @@ void setup() {
 }
 
 void loop() {
-  hwstate down{micros(), lastRead};
+  hwstate down{millis(), lastRead};
 
   if (down != lastRead) {
     lastRead = down;
-    DBG(down.dump());
+    DBG2(down.dump());
     down.send(bleuart, lastRead);
   }
   waitForEvent(); // Request CPU enter low-power mode until an event occurs

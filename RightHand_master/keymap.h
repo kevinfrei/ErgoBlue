@@ -61,6 +61,9 @@
 #define WIN_CAP RCTL
 #define WIN_CTL LCTL
 
+// For the status dumper thingamajig
+const char *layer_names[] = {"Mac", "Win", "Func"};
+
 const action_t keymap[][numcols * numrows * 2] = {
     {// LAYER_MAC_BASE (0)
      LROW1(KEY(ESCAPE), KEY(1), KEY(2), KEY(3), KEY(4), KEY(5), M_VOLD),
