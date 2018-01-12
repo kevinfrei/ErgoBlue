@@ -194,7 +194,17 @@ And here's a top view:
 
 ![Over the top](wired-top.jpg)
 
-### Software
+### Software Story
+
+**Currently supported features**
+* Layers (up to 8 active at any point)
+* Layer shifting, Layer toggling, and layer switching
+
+**Features I plan on adding**
+* Key actions that are modifier sets + key presses
+* And 'output info' capability if you hit a particular set of keys
+
+I'm logging what I'm doing here, paragraph by paragraph.
 
 I have some *seriously* wacky layering going on in my original ErgoDox firmware
 (which you can check out in my KLL fork, if you feel like it) but I plan on
@@ -217,6 +227,14 @@ yes, I noticed that I messed up the V and C keys, but my fingers know which is
 which, and I'm going to switch the keycaps with my old monstrosity anyway, so
 I'll fix that soon enough
 ![NO WIRES!](no-wires.jpg)
+
+Okay, I've debounced the switch reading code. I also have 3 layers, now, and I
+added layer toggling, layer switching, and layer shifting. The biggest remaining
+feature I need (the only?) is the ability to bind a key action to a key plus a
+set of modifiers.  The other thing I think might be cool is to be able to send
+some data over the keyboard. I've seen this called things like "console mode".
+Something like a battery report, and layer stack or something, by hold both
+shifts & both 'controls' (the outer, lower key, right below shift)
 
 ## Future Plans
 
