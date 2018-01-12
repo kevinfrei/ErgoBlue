@@ -1,3 +1,27 @@
+using action_t = uint32_t;
+
+constexpr action_t kMask = 0xf00;
+constexpr action_t kKeyPress = 0x100;
+constexpr action_t kModifier = 0x200;
+constexpr action_t kTapHold = 0x300;
+constexpr action_t kToggleMod = 0x400;
+constexpr action_t kKeyAndMod = 0x500;
+// This works like a shift key for a layer
+constexpr action_t kLayerShift = 0x600;
+// This turns the layer on or off
+constexpr action_t kLayerToggle = 0x700;
+// This switches the current layer to the new one
+constexpr action_t kLayerSwitch = 0x800;
+
+// This is for flagging consumer keycodes, as I have to handle them differently
+constexpr action_t kConsumer = 0x8000;
+
+using layer_t = uint8_t;
+constexpr layer_t kPushLayer = 1;
+constexpr layer_t kPopLayer = 2;
+constexpr layer_t kToggleLayer = 3;
+constexpr layer_t kSwitchLayer = 4;
+
 #define ___ 0
 #define PASTE(a, b) a##b
 #define KEY(a) kKeyPress | PASTE(HID_KEY_, a)
@@ -9,7 +33,9 @@
   kTapHold | PASTE(HID_KEY_, a) | (PASTE(KEYBOARD_MODIFIER_, b) << 16)
 #define KANDMOD(a, b) \
   kKeyAndMod | PASTE(HID_KEY_, a) | (PASTE(KEYBOARD_MODIFIER_, b) << 16)
-#define LAYER(n) kLayer | n
+#define LYR_TOG(n) kLayerToggle | n
+#define LYR_SHIFT(n) kLayerShift | n
+#define LYR_SET(n) kLayerSwitch | n
 
 #define LROW1(l00, l01, l02, l03, l04, l05, l06) \
   ___, l06, l05, l04, l03, l02, l01, l00

@@ -1,8 +1,8 @@
 #include "shared.h"
 
-#include "keystate.h"
 #include "keyhelpers.h"
 #include "keymap.h"
+#include "keystate.h"
 
 // Globals
 BLEDis dis;
@@ -120,8 +120,9 @@ void startAdv(void) {
 }
 
 keystate keyStates[16];
-uint8_t layer_stack[8];
-uint8_t layer_pos = 0;
+constexpr layer_t layer_max = 7;
+layer_t layer_stack[layer_max + 1];
+layer_t layer_pos = 0;
 
 // This is called when the LHS connects, disconnects, and when the system is
 // initialized.  The idea is that it should just wipe everything clean.
@@ -165,9 +166,9 @@ struct keystate* findStateSlot(uint8_t scanCode) {
   return reap;
 }
 
+// Find the first specified action in the layer stack
 action_t resolveActionForScanCodeOnActiveLayer(uint8_t scanCode) {
-  int s = layer_pos;
-
+  layer_t s = layer_pos;
   while (s > 0 && keymap[layer_stack[s]][scanCode] == ___) {
     --s;
   }
@@ -197,7 +198,57 @@ void dumpScanCode(uint8_t sc, bool pressed) {
   Serial.print(" was ");
   Serial.println(pressed ? "pressed" : "released");
 }
+void dumpLayers() {
+  Serial.print("Layer stack: ");
+  for (int i = 0; i <= layer_pos; i++) {
+    Serial.print(layer_stack[i]);
+    Serial.print(" ");
+  }
+  Serial.println("");
+}
 #endif
+
+void layer_push(layer_t layer) {
+  DBG(dumpVal(layer, "Push "));
+  if (layer_pos < layer_max)
+    layer_stack[++layer_pos] = layer;
+  DBG(dumpLayers());
+}
+
+void layer_pop(layer_t layer) {
+  DBG(dumpVal(layer, "Pop "));
+  if (layer_pos > 0)
+    --layer_pos;
+  DBG(dumpLayers());
+}
+
+void layer_toggle(layer_t layer) {
+  // Toggling a layer: If it exists *anywhere* in the layer stack, turn it
+  // off (and fold the layer stack down) If it's *not* in the layer stack,
+  // add it.
+  for (layer_t l = layer_pos; l != 0; l--) {
+    if (layer_stack[l] == layer) {
+      DBG(dumpVal(layer, "Turning off layer "));
+      DBG(dumpVal(l, "at location "));
+      if (layer_pos != l) {
+        DBG(dumpVal(layer_pos - l, "Shifting by "));
+        memmove(&layer_stack[l], &layer_stack[l + 1], layer_pos - l);
+      }
+      layer_pos--;
+      DBG(dumpLayers());
+      return;
+    }
+  }
+  DBG(Serial.print("(For Toggle) "));
+  layer_push(layer);
+}
+
+void layer_switch(layer_t layer) {
+  DBG(dumpVal(layer_stack[layer_pos], "Switching layer "));
+  DBG(dumpVal(layer, "to layer "));
+  layer_stack[layer_pos] = layer;
+  DBG(dumpLayers());
+}
 
 void loop() {
   uint32_t now = micros();
@@ -245,77 +296,22 @@ void loop() {
       // slot, that's a little bonkers, but there's not much we can do about it.
       continue;
     }
-    state->update(sc, pressed, now);
-    // Something to deal with layer changing should get called here.
-    // I think state->update() ought to communicate what to do, probably.
-    // But I'm not trying anything fancy, yet, so I'm just leaving this alone
-  }
-
-#if 0
-  // This was Wez's matrix reading & state transition code. I'm starting out a bit
-  // simpler, and need to eventually add some more complexity :/
-
-  for (int rowNum = 0; rowNum < numrows; ++rowNum) {
-    for (int colNum = 0; colNum < 2 * numcols; ++colNum) {
-      auto scanCode = (rowNum * 2 * numcols) + colNum;
-      auto isDown = down.rows[rowNum] & (1 << colNum);
-      auto wasDown = lastRead.rows[rowNum] & (1 << colNum);
-
-      if (isDown == wasDown) {
-        continue;
-      }
-      keysChanged = true;
-
-      auto state = stateSlot(scanCode, now);
-      if (isDown && !state) {
-        // Silently drop this key; we're tracking too many
-        // other keys right now
-        continue;
-      }
-      DBG(printState(state));
-
-      bool isTransition = false;
-
-      if (state) {
-        if (state->scanCode == scanCode) {
-          // Update the transition time, if any
-          if (state->down != isDown) {
-            state->lastChange = now;
-            state->down = isDown;
-            if (isDown) {
-              state->action = resolveActionForScanCodeOnActiveLayer(scanCode);
-            }
-            isTransition = true;
-          }
-        } else {
-          // We claimed a new slot, so set the transition
-          // time to the current time.
-          state->down = isDown;
-          state->scanCode = scanCode;
-          state->lastChange = now;
-          if (isDown) {
-            state->action = resolveActionForScanCodeOnActiveLayer(scanCode);
-          }
-          isTransition = true;
-        }
-
-        if (isTransition) {
-          switch (state->action & kMask) {
-            case kLayer:
-              if (state->down) {
-                // Push the new layer stack position
-                layer_stack[++layer_pos] = state->action & 0xff;
-              } else {
-                // Pop off the layer stack
-                --layer_pos;
-              }
-              break;
-          }
-        }
-      }
+    // State update returns a layer action to perform...
+    switch (state->update(sc, pressed, now)) {
+      case kPushLayer:
+        layer_push(state->get_layer());
+        break;
+      case kPopLayer:
+        layer_pop(state->get_layer());
+        break;
+      case kToggleLayer:
+        layer_toggle(state->get_layer());
+        break;
+      case kSwitchLayer:
+        layer_switch(state->get_layer());
+        break;
     }
   }
-#endif
 
   if (keysChanged) {
     uint8_t report[6] = {0, 0, 0, 0, 0, 0};

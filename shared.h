@@ -101,7 +101,7 @@ struct hwstate {
     readSwitches();
   }
   hwstate(BLEClientUart& clientUart, const hwstate& prev) {
-    if (!receive(clientUart))
+    if (!receive(clientUart, prev))
       memcpy(reinterpret_cast<uint8_t*>(this),
              reinterpret_cast<const uint8_t*>(&prev),
              sizeof(hwstate));
@@ -140,13 +140,13 @@ struct hwstate {
   }
 
   // Send the relevant data over the wire
-  void send(BLEUart& bleuart, const hwstate& prev) {
+  void send(BLEUart& bleuart, const hwstate& prev) const {
     bleuart.write((uint8_t*)&switches, sizeof(switches) + 1);
   }
 
   // Try to receive any relevant switch data from the wire.
   // Returns true if something was received
-  bool receive(BLEClientUart& clientUart) {
+  bool receive(BLEClientUart& clientUart, const hwstate& prev) {
     if (clientUart.available()) {
       uint8_t buffer[sizeof(switches) + 1];
       int size = clientUart.read(buffer, sizeof(switches) + 1);

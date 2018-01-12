@@ -1,17 +1,3 @@
-using action_t = uint32_t;
-
-constexpr uint32_t kMask = 0xf00;
-constexpr uint32_t kKeyPress = 0x100;
-constexpr uint32_t kModifier = 0x200;
-constexpr uint32_t kTapHold = 0x300;
-constexpr uint32_t kToggleMod = 0x400;
-constexpr uint32_t kKeyAndMod = 0x500;
-// This works like a shift key
-constexpr uint32_t kLayerMod = 0x600;
-// This turns the layer on or off
-constexpr uint32_t kLayerTog = 0x700;
-// This is for flagging consumer keycodes, as I have to handle them differently
-constexpr uint32_t kConsumer = 0x8000;
 action_t resolveActionForScanCodeOnActiveLayer(uint8_t scanCode);
 
 struct keystate {
@@ -24,7 +10,12 @@ struct keystate {
   scancode_t scanCode;
   // Is this a press or release?
   bool down;
-  bool update(scancode_t sc, bool pressed, uint32_t now) {
+
+  layer_t get_layer() const {
+    return action & 0xff;
+  }
+
+  layer_t update(scancode_t sc, bool pressed, uint32_t now) {
     if (scanCode == sc) {
       // Update the transition time, if any
       if (down != pressed) {
@@ -33,7 +24,6 @@ struct keystate {
         if (pressed) {
           action = resolveActionForScanCodeOnActiveLayer(scanCode);
         }
-        return true;
       }
     } else {
       // We claimed a new slot, so set the transition
@@ -44,9 +34,16 @@ struct keystate {
       if (pressed) {
         action = resolveActionForScanCodeOnActiveLayer(scanCode);
       }
-      return true;
     }
-    return false;
+    switch (action & kMask) {
+      case kLayerShift:
+        return down ? kPushLayer : kPopLayer;
+      case kLayerToggle:
+        return down ? kToggleLayer : 0;
+      case kLayerSwitch:
+        return down ? kLayerSwitch : 0;
+    }
+    return 0;
   };
 #if DEBUG
   void dump() const {
