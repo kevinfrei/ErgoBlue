@@ -411,10 +411,10 @@ void loop() {
       type_number(leftSide.battery_level);
       type_string("\nRight battery level ");
       type_number(rightSide.battery_level);
-      type_string("\nLayer Stack; ");
+      type_string("\nLayer Stack: ");
       for (int i = 0; i <= layer_pos; i++) {
         type_number(i);
-        type_string("; ");
+        type_string(": ");
         type_string(layer_names[layer_stack[i]]);
         type_string(", ");
       }
@@ -429,14 +429,17 @@ void loop() {
 void type_string(const char* str) {
   uint8_t console[6] = {0, 0, 0, 0, 0, 0};
   char p = 0;
+  bool shift;
   while (*str) {
+    shift = false;
     char c = *str++;
     char n = 0;
     if (c >= 'a' && c <= 'z')
       n = HID_KEY_A + c - 'a';
-    else if (c >= 'A' && c <= 'Z')
+    else if (c >= 'A' && c <= 'Z') {
       n = HID_KEY_A + c - 'A';
-    else if (c >= '1' && c <= '9')
+      shift = true;
+    } else if (c >= '1' && c <= '9')
       n = HID_KEY_1 + c - '1';
     else {
       switch (c) {
@@ -451,11 +454,23 @@ void type_string(const char* str) {
           n = HID_KEY_RETURN;
           break;
         case ':':
+          shift = true;
         case ';':
           n = HID_KEY_SEMICOLON;
           break;
         case ',':
           n = HID_KEY_COMMA;
+          break;
+        case '(':
+          n = HID_KEY_9;
+          shift = true;
+          break;
+        case ')':
+          n = HID_KEY_0;
+          shift = true;
+          break;
+        case '-':
+          n = HID_KEY_MINUS;
           break;
         default:
           n = HID_KEY_PERIOD;
@@ -466,7 +481,7 @@ void type_string(const char* str) {
       hid.keyboardReport(0, console);
     }
     console[0] = n;
-    hid.keyboardReport(0, console);
+    hid.keyboardReport(shift ? 2 : 0, console);
     p = n;
   }
   // Clear any final key out, just to be safe

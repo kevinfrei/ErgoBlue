@@ -120,16 +120,16 @@ uint8_t getBatteryPercentDiags() {
   float vbat_mv = (float)vbat_raw * VBAT_MV_PER_LSB * VBAT_DIVIDER_COMP;
 
   // Display the results
-  DBG(Serial.print("ADC = "));
-  DBG(Serial.print(vbat_raw * VBAT_MV_PER_LSB));
-  DBG(Serial.print(" mV ("));
-  DBG(Serial.print(vbat_raw));
-  DBG(Serial.print(") "));
-  DBG(Serial.print("LIPO = "));
-  DBG(Serial.print(vbat_mv));
-  DBG(Serial.print(" mV ("));
-  DBG(Serial.print(vbat_per));
-  DBG(Serial.println("%)"));
+  DBG2(Serial.print("ADC = "));
+  DBG2(Serial.print(vbat_raw * VBAT_MV_PER_LSB));
+  DBG2(Serial.print(" mV ("));
+  DBG2(Serial.print(vbat_raw));
+  DBG2(Serial.print(") "));
+  DBG2(Serial.print("LIPO = "));
+  DBG2(Serial.print(vbat_mv));
+  DBG2(Serial.print(" mV ("));
+  DBG2(Serial.print(vbat_per));
+  DBG2(Serial.println("%)"));
   return vbat_per;
 }
 
@@ -141,8 +141,7 @@ uint8_t readBattery(uint32_t now, uint8_t prev) {
   }
   uint8_t bat_percentage = getBatteryPercentDiags();
   if (prev != bat_percentage || !last_bat_time) {
-    DBG(Serial.print("Battery level: "));
-    DBG(Serial.println(bat_percentage));
+    DBG(dumpVal(bat_percentage, "Battery level: "));
   }
   last_bat_time = now;
   return bat_percentage;

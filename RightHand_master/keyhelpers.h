@@ -31,8 +31,36 @@ constexpr layer_t kSwitchLayer = 4;
 
 #define TAPH(a, b) \
   kTapHold | PASTE(HID_KEY_, a) | (PASTE(KEYBOARD_MODIFIER_, b) << 16)
-#define KANDMOD(a, b) \
+#define KMOD(a, b) \
   kKeyAndMod | PASTE(HID_KEY_, a) | (PASTE(KEYBOARD_MODIFIER_, b) << 16)
+#define MOD1(a, b) kKeyAndMod | a | (PASTE(KEYBOARD_MODIFIER_, b) << 16)
+#define KMOD2(a, b, c)              \
+  kKeyAndMod | PASTE(HID_KEY_, a) | \
+      ((PASTE(KEYBOARD_MODIFIER_, b) | PASTE(KEYBOARD_MODIFIER_, c)) << 16)
+#define MOD2(a, b, c) \
+  kKeyAndMod | a |    \
+      ((PASTE(KEYBOARD_MODIFIER_, b) | PASTE(KEYBOARD_MODIFIER_, c)) << 16)
+#define KMOD3(a, b, c, d)                                             \
+  kKeyAndMod | PASTE(HID_KEY_, a) |                                   \
+      ((PASTE(KEYBOARD_MODIFIER_, b) | PASTE(KEYBOARD_MODIFIER_, c) | \
+        PASTE(KEYBOARD_MODIFIER_, d))                                 \
+       << 16)
+#define MOD3(a, b, c, d)                                              \
+  kKeyAndMod | a |                                                    \
+      ((PASTE(KEYBOARD_MODIFIER_, b) | PASTE(KEYBOARD_MODIFIER_, c) | \
+        PASTE(KEYBOARD_MODIFIER_, d))                                 \
+       << 16)
+#define KMOD4(a, b, c, d, e)                                          \
+  kKeyAndMod | PASTE(HID_KEY_, a) |                                   \
+      ((PASTE(KEYBOARD_MODIFIER_, b) | PASTE(KEYBOARD_MODIFIER_, c) | \
+        PASTE(KEYBOARD_MODIFIER_, d) | PASTE(KEYBOARD_MODIFIER_, e))  \
+       << 16)
+#define MOD4(a, b, c, d, e)                                           \
+  kKeyAndMod | a |                                                    \
+      ((PASTE(KEYBOARD_MODIFIER_, b) | PASTE(KEYBOARD_MODIFIER_, c) | \
+        PASTE(KEYBOARD_MODIFIER_, d) | PASTE(KEYBOARD_MODIFIER_, e))  \
+       << 16)
+
 #define LYR_TOG(n) kLayerToggle | n
 #define LYR_SHIFT(n) kLayerShift | n
 #define LYR_SET(n) kLayerSwitch | n

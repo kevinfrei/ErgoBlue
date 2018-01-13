@@ -22,6 +22,7 @@
 #define DEL DELETE
 #define PGUP PAGE_UP
 #define PGDN PAGE_DOWN
+#define EQ_ KEY(EQUAL)
 #define SEMI_ KEY(SEMICOLON)
 #define COMMA_ KEY(COMMA)
 #define DOT_ KEY(PERIOD)
@@ -52,17 +53,49 @@
 #define LYR_WIN LYR_TOG(LAYER_WIN_BASE)
 #define LYR_MAC LYR_TOG(LAYER_WIN_BASE)
 #define LYR_FN LYR_TOG(LAYER_FUNC)
-/*
 #define MAC_CAP LYR_SHIFT(LAYER_MAC_CAP)
+/*
 #define WIN_CAP LYR_SHIFT(LAYER_WIN_CAP)
 #define WIN_CTL LYR_SHIFT(LAYER_WIN_CTL)
 */
-#define MAC_CAP RCMD
 #define WIN_CAP RCTL
 #define WIN_CTL LCTL
 
+#define SHFTC LSHFT | LCMD
+#define CTLC LCTL | LCMD
+#define OPTC LOPT | LCMD
+
+// Some shortcuts for modifiers & stuff
+#define CMK(a) KMOD(a, LEFTCOMMAND)
+#define CM(a) MOD1(a, LEFTCOMMAND)
+#define CTK(a) KMOD(a, LEFTCTRL)
+#define CT(a) MOD1(a, LEFTCTRL)
+#define OPK(a) KMOD(a, LEFTOPTION)
+#define OP(a) MOD1(a, LEFTOPTION)
+#define COSK(a) KMOD3(a, LEFTCTRL, LEFTSHIFT, LEFTOPTION)
+#define COS(a) MOD3(a, LEFTCTRL, LEFTSHIFT, LEFTOPTION)
+#define ALLK(a) KMOD4(a, LEFTCTRL, LEFTSHIFT, LEFTOPTION, LEFTCOMMAND)
+#define ALL(a) MOD4(a, LEFTCTRL, LEFTSHIFT, LEFTOPTION, LEFTCOMMAND)
+
+#define CM_EQ CM(EQ_)
+#define CM_SEMI CM(SEMI_)
+#define CM_QUOTE CM(QUOTE_)
+#define CM_CMA CM(COMMA_)
+#define CM_DOT CM(DOT_)
+#define CM_SLSH CMK(SLASH)
+#define CM_SPC CMK(SPACE)
+#define CM_PUP CMK(PGUP)
+#define CM_PDN CMK(PGDN)
+#define CM_RET CMK(RETURN)
+#define OP_LEFT OP(LEFT_)
+#define OP_RIGHT OP(RIGHT_)
+#define CM_OBRC CMK(OBRC)
+#define CM_CBRC CMK(CBRC)
+#define CM_UP CM(UP_)
+#define CM_DN CM(DOWN_)
 // For the status dumper thingamajig
-const char *layer_names[] = {"Mac", "Win", "Func"};
+const char* layer_names[] = {
+    "Mac(Base)", "Win", "Fn", "MacCmd", "WinCmd", "WinCtrl"};
 
 const action_t keymap[][numcols * numrows * 2] = {
     {// LAYER_MAC_BASE (0)
@@ -74,7 +107,7 @@ const action_t keymap[][numcols * numrows * 2] = {
 
      RROW1(M_VOLU, KEY(6), KEY(7), KEY(8), KEY(9), KEY(0), KEY(MINUS)),
      RROW2(ROPT, KEY(Y), KEY(U), KEY(I), KEY(O), KEY(P), KEY(BACKSLASH)),
-     RROW3(LYR_WIN, KEY(EQUAL), KEY(H), KEY(J), KEY(K), KEY(L), SEMI_, QUOTE_),
+     RROW3(LYR_WIN, EQ_, KEY(H), KEY(J), KEY(K), KEY(L), SEMI_, QUOTE_),
      RROW4(KEY(PGUP), M_NEXT, KEY(N), KEY(M), COMMA_, DOT_, KEY(SLASH), RSHFT),
      RROW5(KEY(PGDN), ENTER_, SPACE_, KEY(CBRC), LEFT_, UP_, DOWN_, RIGHT_)},
 
@@ -108,4 +141,21 @@ const action_t keymap[][numcols * numrows * 2] = {
      RROW2(___, ___, ___, ___, ___, ___, ___),
      RROW3(___, ___, ___, ___, ___, ___, ___, ___),
      RROW4(___, ___, ___, ___, ___, ___, ___, ___),
-     RROW5(___, ___, ___, ___, ___, ___, ___, ___)}};
+     RROW5(___, ___, ___, ___, ___, ___, ___, ___)},
+
+    {// LAYER_MAC_CAP (3)
+     // Mostly just cmd + key (CMK(a)), with exceptions for some window
+     // manipulatiton bindings for my HammerSpoon configuration
+     LROW1(CMK(ESCAPE), CMK(1), CMK(2), CMK(3), CMK(4), CMK(5), CMK(M)),
+     LROW2(CMK(TAB), CMK(Q), CMK(W), CMK(E), CMK(R), CMK(T), COS(LEFT_)),
+     LROW3(___, CMK(A), CMK(S), CMK(D), CMK(F), CMK(G), CMK(GRAVE), COSK(N)),
+     LROW4(SHFTC, CMK(Z), CMK(X), CMK(C), CMK(V), CMK(B), COSK(H), CMK(HOME)),
+     LROW5(CTLC, OPTC, LCMD, M_MUTE, CM_OBRC, OPK(BKSP), OPK(DEL), CMK(END)),
+
+     RROW1(COS(UP_), CMK(6), CMK(7), CMK(8), CMK(9), CMK(0), CMK(MINUS)),
+     RROW2(COS(RIGHT_), CMK(Y), CMK(U), CMK(I), CMK(O), CMK(P), CMK(BACKSLASH)),
+     RROW3(COSK(M), CM_EQ, CMK(H), CMK(J), CMK(K), CMK(L), CM_SEMI, CM_QUOTE),
+     RROW4(CM_PUP, COSK(J), CMK(N), CMK(M), CM_CMA, CM_DOT, CM_SLSH, CM_SPC),
+     RROW5(CM_PDN, CM_RET, CM_SPC, CM_CBRC, OP_LEFT, CM_UP, CM_DN, OP_RIGHT)}
+
+};
