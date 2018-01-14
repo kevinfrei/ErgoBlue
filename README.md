@@ -2,52 +2,62 @@
 
 Stuff for a fully wireless ErgoDox based on a
 [Gist](https://gist.github.com/wez/b30683a4dfa329b86b9e0a2811a8c593) from the
-fabulous Wez Furlong. If you read his Gist, he explains some of this. I'm going
-to document what I'm doing as I go.
+fabulous Wez Furlong. If you read his Gist, he explains some of this. I've
+documented what I've done along the way.
 
-This is my first time doing anything real with Arduino or low level electronics
-at all, so some of this stuff will be absurdly more detailed that it probably
-needs to be, but I'm also an experienced software developer, so I'll gloss over
-a bunch of stuff that seems simple to me (but may not be to you, dear reader).
-Apologies in advance...
+This was my first time doing anything real with Arduino or low level electronics
+at all, so some of this stuff is absurdly more detailed that it probably needs
+to be, but I'm also an experienced software developer, so I'm sure I glossed
+over a bunch of stuff that seemed simple to me (but may not be to you, dear
+reader).  Apologies in advance...
 
 ## Shopping List
-1. **2 [AdaFruit feather nRF52](https://www.adafruit.com/product/3406)'s.**
-1. **2 [LiPo batteries](https://www.adafruit.com/product/328) to drive the
-wireless modules.** I bought 500 mAh LiPo batteries, because I'm hoping they
-will last long enough for me to not have to charge very frequently. I'm a bit of
-an idiot, because I didn't realize that they had 2500 mAh LiPo batteries. They
-would be better...
-1. **A couple of ErgoDox keyboard plates.** I purchased a spare ErgoDox Infinity
+* **2 [AdaFruit feather nRF52](https://www.adafruit.com/product/3406)'s.**
+* **2 [LiPo batteries](https://www.adafruit.com/product/328) to drive the
+wireless modules.** I bought 500 mAh LiPo batteries, because I'd hoped they
+would last long enough for me to not have to charge very frequently. They last a
+couple days, so I'll be adding on/off switches to the keyboard halves to reduce
+power usage while I'm not actively using the keyboard. I'm a bit of an idiot,
+because I didn't realize that they had 2500 mAh LiPo batteries. They would be
+better. (I bought a couple of 2000mAh for a more custom keyboard project I'm
+working on. I might try to get fancy and see how to reduce power consumption,
+too)
+* **A couple of ErgoDox keyboard plates.** I purchased a spare ErgoDox Infinity
 from MassDrop a while back (when they were still selling them), just to have
 around in case either my home or work keyboard died. I find all the cords for
 the ErgoDox *really* annoying, so I decided to grab the keyswitch plates and try
-this out. I may wind up changing this keyboard to be a custom build instead. I
-find the lack of a decent place to put an 'Arrow T' pretty irritating, as well,
-so maybe sometime in the future I'll get as adventurous as Wez and make my own
-custom keyboard plate.
-1. **About 80 1n4148 'signaling' diodes.** (I bought 250, because they're
+this out. I may wind up changing from this keyboard to be a custom build
+instead. I find the lack of a decent place to put an 'Arrow T' pretty
+irritating, as well, so maybe sometime in the future I'll get as adventurous as
+Wez and make my own custom keyboard plate.
+* **About 80 1n4148 'signaling' diodes.** (I bought 250, because they're
 cheap). I understand, logically, what a diode is, but I have zero understanding
 of the difference between a schottky diode, zener diode, or whatever. Everything
 I've read says to just use 1n4148's, so I bought a bunch from DigiKey. I haven't
 received them yet, so I'm just reading up on a bunch of stuff, and horsing
 around with the AdaFruit devices.
-1. **Key Switches.** [Cherry MX Clear](https://www.digikey.com/short/qq2p2d)'s
+* **Key Switches.** [Cherry MX Clear](https://www.digikey.com/short/qq2p2d)'s
 are what I've used, but I recently acquired a glob of
 [Zealios](https://zealpc.net/collections/switches/products/zealio), which are
 also firmer than Cherry Brown's, so I'm gonna try the Zealios Purple's on the
 main keys, and the Clear's on the thumb clusters.
-1. **Key Caps.** I have a bunch of these hanging around, because *I have a
+* **Key Caps.** I have a bunch of these hanging around, because *I have a
 problem*.
-1. **A [MicroUSB Cable](http://a.co/31KmMeQ) or two.** Find one in a drawer
+* **(Optional) [Power toggle switches.](http://a.co/bo5UNhS)** I snagged these
+after the whole project was complete, because as I mentioned above, I kinda want
+the thing not to require constant plugging in just to charge. In the future,
+I'll definitely grab bigger batteries. 500mAh is too darned small.
+* **A [MicroUSB Cable](http://a.co/31KmMeQ) or two.** Find one in a drawer
 somewhere. These things are everywhere, like Easter grass or Christmas Tree
 tinsel. They multiply when out of sight, like a weird combination of rabbits,
 and Weeping Angels.
-1. **Some kind of case that works**. For me, I bought a chunk of maple and used
+* **Some kind of case that works**. For me, I bought a chunk of maple and used
 Autodesk Fusion360 to model a nice case with spots for the AdaFruit board and
 the batteries, because I have a little CNC machine. Given that we don't have the
 PCB layer from the original ErgoDox Infinity, I suspect you could do something
-with that case if you tried.
+with that case if you tried. I modified it for my normal ErgoDox because I want
+the keyboard tented (lifted up in the middle), but you could probably find a
+decent spot for the AdaFruit device and a battery if you really look...
 
 ## Getting started
 To use the AdaFruit devices, I had to download an older version (1.6.14) of the
@@ -116,11 +126,11 @@ engineers.
 First, I stripped wires so they fit across the rows, then soldered them:
 ![Rows All Wired](rows-wired.jpg)
 
-The diodes showed up last night, so I soldered them together on the left hand
-side. I'm old and sitting down soldering for a lot time makes my back hurt, so
-I've just finished up the left hand side (probably not the smartest, because the
-right hand side is the master, here, so I think I have to mess with both chunks
-of Wez's code now. Here's the left hand side all dioded (that's a word!) up.
+When the diodes showed up I soldered them together on the left hand side. I'm
+old and sitting down soldering for a lot time makes my back hurt, so I just
+finished up the left hand side (probably not the smartest, because the right
+hand side is the master, here, so I had to mess with both chunks of Wez's code
+now. Here's the left hand side all dioded (that's a word!) up.
 ![Left Hand Size Dioded](lhs-dioded.jpg)
 
 ### Case Design
@@ -194,6 +204,12 @@ And here's a top view:
 
 ![Over the top](wired-top.jpg)
 
+And, after everything was done, I realized that I needed power switches, because
+500mAh isn't sufficient to last more than a day or so. So here's a new picture
+of the underbelly of my keyboard halves:
+
+![Switched Underbelly](underbelly-switched.jpg)
+
 ### Software Story
 
 **Currently supported features**
@@ -202,10 +218,11 @@ And here's a top view:
 * If you hit both shift keys, and the keys immediately below at the same time,
   you'll get a battery report typed out to the text console. I plan on adding
   more diagnostics (Layer stack info, anything else useful) as time goes on.
+* Key actions that are modifier sets + key presses
 
-**Features I plan on adding**
-* Key actions that are modifier sets + key presses (I think this exists already,
-  but I haven't really looked at Wez's code in enough detail)
+Most of the capabilities already existed in Wez's original Gist.
+
+**Live Blog, after the fact**
 
 I'm logging what I'm doing here, paragraph by paragraph.
 
@@ -234,14 +251,20 @@ I'll fix that soon enough
 Okay, I've debounced the switch reading code. I also have 3 layers, now, and I
 added layer toggling, layer switching, and layer shifting. The biggest remaining
 feature I need (the only?) is the ability to bind a key action to a key plus a
-set of modifiers.  The other thing I think might be cool is to be able to send
-some data over the keyboard. I've seen this called things like "console mode".
-Something like a battery report, and layer stack or something, by hold both
-shifts & both 'controls' (the outer, lower key, right below shift)
+set of modifiers. (Turns out Wez already had that) The other thing I think might
+be cool is to be able to send some data over the keyboard. I've seen this called
+things like "console mode".  Something like a battery report, and layer stack or
+something, by hold both shifts & both 'controls' (the outer, lower key, right
+below shift)
+
+Got the Console Mode added: type_string and type_number are both a thing now. If
+you want to add macros, that code is probably where you start. When you hit the
+keys I mentioned above, you get the battery levels, along with the keyboard
+layer list, typed out wherever you happen to be. Hurray, I have printf debugging
+without needing a wire :D
 
 ## Future Plans
 
-* Add an on/off switch to conserve battery (but only if it's worth while)
 * Add an LED or two or three to indicate layer/mode stuff: There's a nice spot
   for it where the LCD screen went on the Infinity...
 * Upload my Fusion360 project for the wood case

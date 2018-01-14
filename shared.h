@@ -2,7 +2,7 @@
 // It's not really a 'clean' way to do this, but I'm just hacking & slashing...
 
 #include <bluefruit.h>
-#define DEBUG 1
+//#define DEBUG 1
 
 #if DEBUG
 #define DBG(a) a
@@ -43,7 +43,7 @@ constexpr uint8_t numrows = sizeof(rowPins) / sizeof(*rowPins);
 
 constexpr uint8_t VBAT = 31; // pin 31 is available for sampling the battery
 
-constexpr uint8_t DEBOUNCE_COUNT = 8;
+constexpr uint8_t DEBOUNCE_COUNT = 10;
 
 // Some globals used by both halves
 uint32_t last_bat_time = 0;

@@ -4,6 +4,8 @@
 #include "keymap.h"
 #include "keystate.h"
 
+#define STATUS_DUMP 1
+
 // Globals
 BLEDis dis;
 BLEHidAdafruit hid;
@@ -12,6 +14,11 @@ BLEBas battery;
 
 hwstate leftSide{};
 hwstate rightSide{};
+
+#if STATUS_DUMP
+constexpr uint8_t status_keys_left[] = {0, 0, 0, 0x80, 0x80};
+constexpr uint8_t status_keys_right[] = {0, 0, 0, 1, 1};
+#endif
 
 // Declarations
 void resetKeyMatrix();
@@ -92,8 +99,8 @@ void cent_connect_callback(uint16_t conn_handle) {
 }
 
 void cent_disconnect_callback(uint16_t conn_handle, uint8_t reason) {
-  (void)conn_handle;
-  (void)reason;
+  DBG(dumpVal(conn_handle, "Connection Handle Disconnected: "));
+  DBG(dumpVal(reason, " Reason #"));
   DBG(Serial.println("[Cent] Disconnected"));
   resetKeyMatrix();
 }
@@ -373,7 +380,6 @@ void loop() {
         }
       }
     }
-
 #if DEBUG
     Serial.print("mods=");
     Serial.print(mods, HEX);
@@ -400,13 +406,11 @@ void loop() {
     rightSide = downRight;
     leftSide = downLeft;
 
+#if STATUS_DUMP
     // Check for hardware request thingamajig:
     // This is hard coded, mostly because I'm just hacking
-    if (!leftSide.switches[0] && !leftSide.switches[1] &&
-        !leftSide.switches[2] && leftSide.switches[3] == 0x80 &&
-        leftSide.switches[4] == 0x80 && !rightSide.switches[0] &&
-        !rightSide.switches[1] && !rightSide.switches[2] &&
-        rightSide.switches[3] == 1 && rightSide.switches[4] == 1) {
+    if (!hwstate::swcmp(leftSide, status_keys_left) &&
+        !hwstate::swcmp(rightSide, status_keys_right)) {
       type_string("Left Battery level ");
       type_number(leftSide.battery_level);
       type_string("\nRight battery level ");
@@ -420,10 +424,12 @@ void loop() {
       }
       type_string("\n");
     }
+#endif
   }
   waitForEvent(); // Request CPU enter low-power mode until an event occurs
 }
 
+#if STATUS_DUMP
 // A very limited version of typing the string. It dumps lower case, nubmers,
 // a few other things, defaults to '.' for everything else.
 void type_string(const char* str) {
@@ -517,3 +523,4 @@ void type_number(uint32_t val) {
   console[0] = 0;
   hid.keyboardReport(0, console);
 }
+#endif

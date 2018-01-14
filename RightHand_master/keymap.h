@@ -41,26 +41,6 @@
 #define M_PREV CONS(M_PREVIOUS_TRACK)
 #define M_NEXT CONS(M_NEXT_TRACK)
 
-#define LAYER_MAC_BASE 0
-#define LAYER_WIN_BASE 1
-#define LAYER_FUNC 2
-// The next three aren't yet implemented, because they require actions that
-// involve modifiers
-#define LAYER_MAC_CAP 3
-#define LAYER_WIN_CAP 4
-#define LAYER_WIN_CTL 5
-
-#define LYR_WIN LYR_TOG(LAYER_WIN_BASE)
-#define LYR_MAC LYR_TOG(LAYER_WIN_BASE)
-#define LYR_FN LYR_TOG(LAYER_FUNC)
-#define MAC_CAP LYR_SHIFT(LAYER_MAC_CAP)
-/*
-#define WIN_CAP LYR_SHIFT(LAYER_WIN_CAP)
-#define WIN_CTL LYR_SHIFT(LAYER_WIN_CTL)
-*/
-#define WIN_CAP RCTL
-#define WIN_CTL LCTL
-
 #define SHFTC LSHFT | LCMD
 #define CTLC LCTL | LCMD
 #define OPTC LOPT | LCMD
@@ -72,6 +52,10 @@
 #define CT(a) MOD1(a, LEFTCTRL)
 #define OPK(a) KMOD(a, LEFTOPTION)
 #define OP(a) MOD1(a, LEFTOPTION)
+#define AL(a) MOD1(a, LEFTALT)
+#define ALK(a) KMOD(a, LEFTALT)
+#define GU(a) MOD1(a, LEFTGUI)
+#define GUK(a) KMOD((a, LEFTGUI)
 #define COSK(a) KMOD3(a, LEFTCTRL, LEFTSHIFT, LEFTOPTION)
 #define COS(a) MOD3(a, LEFTCTRL, LEFTSHIFT, LEFTOPTION)
 #define ALLK(a) KMOD4(a, LEFTCTRL, LEFTSHIFT, LEFTOPTION, LEFTCOMMAND)
@@ -93,6 +77,26 @@
 #define CM_CBRC CMK(CBRC)
 #define CM_UP CM(UP_)
 #define CM_DN CM(DOWN_)
+#define LAYER_MAC_BASE 0
+#define LAYER_WIN_BASE 1
+#define LAYER_FUNC 2
+#define LAYER_MAC_CAP 3
+// The next two aren't yet implemented, because they require actions that
+// involve modifiers
+#define LAYER_WIN_CAP 4
+#define LAYER_WIN_CTL 5
+
+#define LYR_WIN LYR_TOG(LAYER_WIN_BASE)
+#define LYR_MAC LYR_TOG(LAYER_WIN_BASE)
+#define LYR_FN LYR_TOG(LAYER_FUNC)
+#define MAC_CAP LYR_SHIFT(LAYER_MAC_CAP)
+/*
+#define WIN_CAP LYR_SHIFT(LAYER_WIN_CAP)
+#define WIN_CTL LYR_SHIFT(LAYER_WIN_CTL)
+*/
+#define WIN_CAP RCTL
+#define WIN_CTL LCTL
+
 // For the status dumper thingamajig
 const char* layer_names[] = {
     "Mac(Base)", "Win", "Fn", "MacCmd", "WinCmd", "WinCtrl"};
@@ -143,7 +147,7 @@ const action_t keymap[][numcols * numrows * 2] = {
      RROW4(___, ___, ___, ___, ___, ___, ___, ___),
      RROW5(___, ___, ___, ___, ___, ___, ___, ___)},
 
-    {// LAYER_MAC_CAP (3)
+    {// LAYER_MAC_CMD (3)
      // Mostly just cmd + key (CMK(a)), with exceptions for some window
      // manipulatiton bindings for my HammerSpoon configuration
      LROW1(CMK(ESCAPE), CMK(1), CMK(2), CMK(3), CMK(4), CMK(5), CMK(M)),
@@ -156,6 +160,11 @@ const action_t keymap[][numcols * numrows * 2] = {
      RROW2(COS(RIGHT_), CMK(Y), CMK(U), CMK(I), CMK(O), CMK(P), CMK(BACKSLASH)),
      RROW3(COSK(M), CM_EQ, CMK(H), CMK(J), CMK(K), CMK(L), CM_SEMI, CM_QUOTE),
      RROW4(CM_PUP, COSK(J), CMK(N), CMK(M), CM_CMA, CM_DOT, CM_SLSH, CM_SPC),
-     RROW5(CM_PDN, CM_RET, CM_SPC, CM_CBRC, OP_LEFT, CM_UP, CM_DN, OP_RIGHT)}
+     RROW5(CM_PDN, CM_RET, CM_SPC, CM_CBRC, OP_LEFT, CM_UP, CM_DN, OP_RIGHT)},
 
-};
+    /*{// LAYER_WIN_CMD (4)
+        // This is magic to get a bunch of mac commands to send their Windows
+        // equivalent The poster children are Caps-Q => Alt-F4 and Caps-W =>
+        // Ctl-F4 Effectively making Caps-Q & Caps-W correspond to Quit and
+        // Close Window
+    }*/};
