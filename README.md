@@ -14,50 +14,51 @@ reader).  Apologies in advance...
 ## Shopping List
 * **2 [AdaFruit feather nRF52](https://www.adafruit.com/product/3406)'s.**
 * **2 [LiPo batteries](https://www.adafruit.com/product/328) to drive the
-wireless modules.** I bought 500 mAh LiPo batteries, because I'd hoped they
-would last long enough for me to not have to charge very frequently. They last a
-couple days, so I'll be adding on/off switches to the keyboard halves to reduce
-power usage while I'm not actively using the keyboard. I'm a bit of an idiot,
-because I didn't realize that they had 2500 mAh LiPo batteries. They would be
-better. (I bought a couple of 2000mAh for a more custom keyboard project I'm
-working on. I might try to get fancy and see how to reduce power consumption,
-too)
+  wireless modules.** I bought 500 mAh LiPo batteries, because I'd hoped they
+  would last long enough for me to not have to charge very frequently. They last
+  a couple days, so I'll be adding on/off switches to the keyboard halves to
+  reduce power usage while I'm not actively using the keyboard. I'm a bit of an
+  idiot, because I didn't realize that they had 2500 mAh LiPo batteries. They
+  would be better. (I bought a couple of 2000mAh for a more custom keyboard
+  project I'm working on. I might try to get fancy and see how to reduce power
+  consumption, too)
 * **A couple of ErgoDox keyboard plates.** I purchased a spare ErgoDox Infinity
-from MassDrop a while back (when they were still selling them), just to have
-around in case either my home or work keyboard died. I find all the cords for
-the ErgoDox *really* annoying, so I decided to grab the keyswitch plates and try
-this out. I may wind up changing from this keyboard to be a custom build
-instead. I find the lack of a decent place to put an 'Arrow T' pretty
-irritating, as well, so maybe sometime in the future I'll get as adventurous as
-Wez and make my own custom keyboard plate.
+  from MassDrop a while back (when they were still selling them), just to have
+  around in case either my home or work keyboard died. I find all the cords for
+  the ErgoDox *really* annoying, so I decided to grab the keyswitch plates and
+  try this out. I may wind up changing from this keyboard to be a custom build
+  instead. I find the lack of a decent place to put an 'Arrow T' pretty
+  irritating, as well, so maybe sometime in the future I'll get as adventurous
+  as Wez and make my own custom keyboard plate.
 * **About 80 1n4148 'signaling' diodes.** (I bought 250, because they're
-cheap). I understand, logically, what a diode is, but I have zero understanding
-of the difference between a schottky diode, zener diode, or whatever. Everything
-I've read says to just use 1n4148's, so I bought a bunch from DigiKey. I haven't
-received them yet, so I'm just reading up on a bunch of stuff, and horsing
-around with the AdaFruit devices.
+  cheap). I understand, logically, what a diode is, but I have zero understanding
+  of the difference between a schottky diode, zener diode, or whatever. Everything
+  I've read says to just use 1n4148's, so I bought a bunch from DigiKey. I haven't
+  received them yet, so I'm just reading up on a bunch of stuff, and horsing
+  around with the AdaFruit devices.
 * **Key Switches.** [Cherry MX Clear](https://www.digikey.com/short/qq2p2d)'s
-are what I've used, but I recently acquired a glob of
-[Zealios](https://zealpc.net/collections/switches/products/zealio), which are
-also firmer than Cherry Brown's, so I'm gonna try the Zealios Purple's on the
-main keys, and the Clear's on the thumb clusters.
+  are what I've used, but I recently acquired a glob of
+  [Zealios](https://zealpc.net/collections/switches/products/zealio), which are
+  also firmer than Cherry Brown's, so I'm gonna try the Zealios Purple's on the
+  main keys, and the Clear's on the thumb clusters.
 * **Key Caps.** I have a bunch of these hanging around, because *I have a
-problem*.
+  problem*.
 * **(Optional) [Power toggle switches.](http://a.co/bo5UNhS)** I snagged these
-after the whole project was complete, because as I mentioned above, I kinda want
-the thing not to require constant plugging in just to charge. In the future,
-I'll definitely grab bigger batteries. 500mAh is too darned small.
+  after the whole project was complete, because as I mentioned above, I kinda
+  want the thing not to require constant plugging in just to charge. In the
+  future, I'll definitely grab bigger batteries. 500mAh is too darned small.
 * **A [MicroUSB Cable](http://a.co/31KmMeQ) or two.** Find one in a drawer
-somewhere. These things are everywhere, like Easter grass or Christmas Tree
-tinsel. They multiply when out of sight, like a weird combination of rabbits,
-and Weeping Angels.
+  somewhere. These things are everywhere, like Easter grass or Christmas Tree
+  tinsel. They multiply when out of sight, like a weird combination of rabbits,
+  and Weeping Angels.
 * **Some kind of case that works**. For me, I bought a chunk of maple and used
-Autodesk Fusion360 to model a nice case with spots for the AdaFruit board and
-the batteries, because I have a little CNC machine. Given that we don't have the
-PCB layer from the original ErgoDox Infinity, I suspect you could do something
-with that case if you tried. I modified it for my normal ErgoDox because I want
-the keyboard tented (lifted up in the middle), but you could probably find a
-decent spot for the AdaFruit device and a battery if you really look...
+  Autodesk Fusion360 to model a nice case with spots for the AdaFruit board and
+  the batteries, because I have a little CNC machine. Given that we don't have
+  the PCB layer from the original ErgoDox Infinity, I suspect you could do
+  something with that case if you tried. I modified it for my normal ErgoDox
+  because I want the keyboard tented (lifted up in the middle), but you could
+  probably find a decent spot for the AdaFruit device and a battery if you
+  really look...
 
 ## Getting started
 To use the AdaFruit devices, I had to download an older version (1.6.14) of the
@@ -91,8 +92,8 @@ most.](http://pcbheaven.com/wikipages/How_Key_Matrices_Works/) The important
 points (at least for me) are:
 * Each key must be a unique combination of 'row' and 'column'
 * You need to make sure to wire the diodes in parallel. If you wire them
-serially, things may be unhappy (they may not, but parallel is the right way to
-do this.
+  serially, things may be unhappy (they may not, but parallel is the right way
+  to do this.
 
 It has occurred to me that I might be able to cannibalize the ErgoDox PCB's for
 some/all of the wiring, but that just seems like a pain, and I'm not ready to
@@ -268,6 +269,17 @@ without needing a wire :D
 * Add an LED or two or three to indicate layer/mode stuff: There's a nice spot
   for it where the LCD screen went on the Infinity...
 * Upload my Fusion360 project for the wood case
+* Maybe add an OLED screen? I kinda miss that from my Infinity ErgoDox. There's
+  a little 128x32 doodad from AdaFruit for pretty cheap that looks like it just
+  attaches, but it's not clear to me if it eats all my GPIO pins or not...
+
+### Known issues / bugs / TODO's
+* The right hand side battery doesn't seem to update after boot. Weird.
+* I'd like to add key sequences as a base capability. It'll be a little clunky,
+  because I think doing so inline will be prohibitive.
+* I should make sure that I'm consistent with trailing underscores indicating a
+  full keycode, rather than something that needs to be used in a KEY() or MOD()
+  macro.
 
 **Useful links**
 
