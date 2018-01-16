@@ -8,6 +8,8 @@ void setup() {
   shared_setup();
   Bluefruit.begin();
   Bluefruit.autoConnLed(false);
+  // I should be able to turn this *way* down, since I'm talking to the master
+  // device sitting less than 10cm away, right?
   Bluefruit.setTxPower(0);
   Bluefruit.setName(LHS_NAME);
 
@@ -26,6 +28,8 @@ void setup() {
   Bluefruit.Advertising.restartOnDisconnect(true);
   Bluefruit.Advertising.setInterval(32, 244); // in unit of 0.625 ms
   Bluefruit.Advertising.setFastTimeout(30); // number of seconds in fast mode
+  // I should probably stop advertising after a while if that's possible. I have
+  // switches now, so if I need it to advertise, I can just punch the power.
   Bluefruit.Advertising.start(0); // 0 = Don't stop advertising after n seconds
 }
 

@@ -41,9 +41,12 @@
 #define M_PREV CONS(M_PREVIOUS_TRACK)
 #define M_NEXT CONS(M_NEXT_TRACK)
 
-#define SHFTC LSHFT | LCMD
-#define CTLC LCTL | LCMD
-#define OPTC LOPT | LCMD
+#define SHFTCM LSHFT | LCMD
+#define CTLCM LCTL | LCMD
+#define OPTCM LOPT | LCMD
+#define SHFTCT LSHFT | LCMD
+#define GUICT LGUI | LCMD
+#define ALTCT LALT | LCMD
 
 // Some shortcuts for modifiers & stuff
 #define CMK(a) KMOD(a, LEFTCOMMAND)
@@ -77,6 +80,24 @@
 #define CM_CBRC CMK(CBRC)
 #define CM_UP CM(UP_)
 #define CM_DN CM(DOWN_)
+
+#define CT_OBRC CTK(OBRC)
+#define CT_CBRC CTK(CBRC)
+#define CT_QUOTE CT(QUOTE_)
+#define CT_SEMI CT(SEMI_)
+#define CT_EQ CTK(EQUAL)
+#define CT_SLSH CTK(SLASH)
+#define CT_CMA CT(COMMA_)
+#define CT_DOT CT(DOT_)
+#define CT_PUP CTK(PGUP)
+#define CT_PDN CTK(PGDN)
+#define CT_UP CT(UP_)
+#define CT_DN CT(DOWN_)
+#define CT_LEFT CT(LEFT_)
+#define CT_RIGHT CT(RIGHT_)
+#define CT_SPC CT(SPACE_)
+#define CT_RET CTK(RETURN)
+
 #define LAYER_MAC_BASE 0
 #define LAYER_WIN_BASE 1
 #define LAYER_FUNC 2
@@ -90,16 +111,12 @@
 #define LYR_MAC LYR_TOG(LAYER_WIN_BASE)
 #define LYR_FN LYR_TOG(LAYER_FUNC)
 #define MAC_CAP LYR_SHIFT(LAYER_MAC_CAP)
-/*
 #define WIN_CAP LYR_SHIFT(LAYER_WIN_CAP)
 #define WIN_CTL LYR_SHIFT(LAYER_WIN_CTL)
-*/
-#define WIN_CAP RCTL
-#define WIN_CTL LCTL
 
 // For the status dumper thingamajig
 const char* layer_names[] = {
-    "Mac(Base)", "Win", "Fn", "MacCmd", "WinCmd", "WinCtrl"};
+    "Base/Mac", "Win", "Fn", "MacCaps", "WinCaps", "WinCtrl"};
 
 const action_t keymap[][numcols * numrows * 2] = {
     {// LAYER_MAC_BASE (0)
@@ -147,14 +164,14 @@ const action_t keymap[][numcols * numrows * 2] = {
      RROW4(___, ___, ___, ___, ___, ___, ___, ___),
      RROW5(___, ___, ___, ___, ___, ___, ___, ___)},
 
-    {// LAYER_MAC_CMD (3)
+    {// LAYER_MAC_CAP (3)
      // Mostly just cmd + key (CMK(a)), with exceptions for some window
      // manipulatiton bindings for my HammerSpoon configuration
      LROW1(CMK(ESCAPE), CMK(1), CMK(2), CMK(3), CMK(4), CMK(5), CMK(M)),
      LROW2(CMK(TAB), CMK(Q), CMK(W), CMK(E), CMK(R), CMK(T), COS(LEFT_)),
      LROW3(___, CMK(A), CMK(S), CMK(D), CMK(F), CMK(G), CMK(GRAVE), COSK(N)),
-     LROW4(SHFTC, CMK(Z), CMK(X), CMK(C), CMK(V), CMK(B), COSK(H), CMK(HOME)),
-     LROW5(CTLC, OPTC, LCMD, M_MUTE, CM_OBRC, OPK(BKSP), OPK(DEL), CMK(END)),
+     LROW4(SHFTCM, CMK(Z), CMK(X), CMK(C), CMK(V), CMK(B), COSK(H), CMK(HOME)),
+     LROW5(CTLCM, OPTCM, LCMD, M_MUTE, CM_OBRC, OPK(BKSP), OPK(DEL), CMK(END)),
 
      RROW1(COS(UP_), CMK(6), CMK(7), CMK(8), CMK(9), CMK(0), CMK(MINUS)),
      RROW2(COS(RIGHT_), CMK(Y), CMK(U), CMK(I), CMK(O), CMK(P), CMK(BACKSLASH)),
@@ -162,9 +179,47 @@ const action_t keymap[][numcols * numrows * 2] = {
      RROW4(CM_PUP, COSK(J), CMK(N), CMK(M), CM_CMA, CM_DOT, CM_SLSH, CM_SPC),
      RROW5(CM_PDN, CM_RET, CM_SPC, CM_CBRC, OP_LEFT, CM_UP, CM_DN, OP_RIGHT)},
 
-    /*{// LAYER_WIN_CMD (4)
-        // This is magic to get a bunch of mac commands to send their Windows
-        // equivalent The poster children are Caps-Q => Alt-F4 and Caps-W =>
-        // Ctl-F4 Effectively making Caps-Q & Caps-W correspond to Quit and
-        // Close Window
-    }*/};
+    {// LAYER_WIN_CAP (4)
+     // This is magic to get a bunch of mac commands to send their Windows
+     // equivalent The poster children are Caps-Q => Alt-F4 and Caps-W =>
+     // Ctl-F4 Effectively making Caps-Q & Caps-W correspond to Quit and
+     // Close Window
+     // TODO: Support key sequences so that gui-left, up/down works for
+     // quadrant window docking. Also probably try to do it from AutoHotKey
+     // because the way Windows 10 natively handles it is shit.
+     LROW1(CTK(ESCAPE), CTK(1), CTK(2), CTK(3), CTK(4), CTK(5), GU(DOWN_)),
+     LROW2(CTK(TAB), ALK(F4), CTK(F4), CTK(E), CTK(R), CTK(T), GU(LEFT_)),
+     LROW3(___, CTK(A), CTK(S), CTK(D), CTK(F), CTK(G), CTK(GRAVE), ___),
+     LROW4(SHFTCT, CTK(Z), CTK(X), CTK(C), CTK(V), CTK(B), ___, CTK(HOME)),
+     LROW5(LCTL, GUICT, ALTCT, ___, CT_OBRC, CTK(BKSP), CTK(DEL), CTK(END)),
+
+     RROW1(GU(UP_), CTK(6), CTK(7), CTK(8), CTK(9), CTK(0), CTK(MINUS)),
+     RROW2(GU(RIGHT_), CTK(Y), CTK(U), CTK(I), CTK(O), CTK(P), CTK(BACKSLASH)),
+     RROW3(___, CT_EQ, CTK(H), CTK(J), CTK(K), CTK(L), CT_SEMI, CT_QUOTE),
+     RROW4(CT_PUP, ___, CTK(N), CTK(M), CT_CMA, KEY(ESCAPE), CT_SLSH, RGUI),
+     RROW5(CT_PDN, CT_RET, CT_SPC, CT_CBRC, CT_LEFT, CT_UP, CT_DN, CT_RIGHT)
+
+    },
+    {// LAYER_WIN_CTL (5)
+     // This is magic to make Unix line editing controls to work like they do in
+     // Unix, but when working on Windows. The only one I can't really do is
+     // ctrl-t
+     // because Transpose would require something quite fancy. I could pull it
+     // off
+     // with use of the clipboard and sequence support, but that's not likely to
+     // happen until I actually care.
+     // Note: I'm not mapping any of the media-ish keys. I probably should.
+     // The one thing I don't think I've really done is think about alt-prscn
+     // for
+     // handling screenshots & the like...
+     LROW1(CTK(ESCAPE), CTK(1), CTK(2), CTK(3), CTK(4), CTK(5), ___),
+     LROW2(CTK(TAB), CTK(Q), CTK(W), KEY(END), CTK(R), CTK(T), CT_OBRC),
+     LROW3(LCTL, KEY(HOME), CTK(S), KEY(DEL), RIGHT_, CTK(G), CTK(GRAVE), ___),
+     LROW4(SHFTCT, CTK(Z), CTK(X), CTK(C), CTK(V), LEFT_, ___, CTK(HOME)),
+     LROW5(___, GUICT, ALTCT, ___, CT_OBRC, CTK(BKSP), CTK(DEL), CTK(END)),
+
+     RROW1(GU(UP_), CTK(6), CTK(7), CTK(8), CTK(9), CTK(0), CTK(MINUS)),
+     RROW2(CT_CBRC, CTK(Y), CTK(U), CTK(I), CTK(O), UP_, CTK(BACKSLASH)),
+     RROW3(___, CT_EQ, CTK(H), CTK(J), CTK(K), CTK(L), CT_SEMI, CT_QUOTE),
+     RROW4(CT_PUP, ___, DOWN_, CTK(M), CT_CMA, CT_DOT, CT_SLSH, RSHFT | LCTL),
+     RROW5(CT_PDN, CT_RET, CT_SPC, CT_CBRC, CT_LEFT, CT_UP, CT_DN, CT_RIGHT)}};

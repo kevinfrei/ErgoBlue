@@ -16,8 +16,12 @@ hwstate leftSide{};
 hwstate rightSide{};
 
 #if STATUS_DUMP
+// If you hold this configuration down, it types out status
 constexpr uint8_t status_keys_left[] = {0, 0, 0, 0x80, 0x80};
 constexpr uint8_t status_keys_right[] = {0, 0, 0, 1, 1};
+// If you hold this down, just on the right keyboard, it should RHS status only
+// (might be made helpful in the future...)
+constexpr uint8_t just_right_stat[] = {0, 0, 0, 3, 3};
 #endif
 
 // Declarations
@@ -42,6 +46,10 @@ void setup() {
 
   battery.begin();
 
+  // I'm assuming if I dropped this power down, I'd save some battery life.  I
+  // should experiment to see how low I can get it and still communicate with
+  // both my Mac and my PC reliably. They're each within a meter of the
+  // keyboard...
   Bluefruit.setTxPower(0);
   Bluefruit.setName(BT_NAME);
 
@@ -69,6 +77,8 @@ void setup() {
   Bluefruit.Scanner.setInterval(160, 80); // in unit of 0.625 ms
   Bluefruit.Scanner.filterUuid(BLEUART_UUID_SERVICE);
   Bluefruit.Scanner.useActiveScan(false);
+  // I should probably stop advertising after a while if that's possible. I have
+  // switches now, so if I need it to advertise, I can just punch the power.
   Bluefruit.Scanner.start(0); // 0 = Don't stop scanning after n seconds
 
   hid.begin();
@@ -273,7 +283,10 @@ void loop() {
     // only report it if we have something to actually report
     if (downLeft.battery_level) {
       battery.notify((downRight.battery_level + downLeft.battery_level) / 2);
+      DBG(dumpVal((downRight.battery_level + downLeft.battery_level) / 2,
+                  "battery avg: "));
     } else {
+      DBG(dumpVal(downRight.battery_level, "right only battery: "));
       battery.notify(downRight.battery_level);
     }
   }
@@ -407,20 +420,25 @@ void loop() {
     leftSide = downLeft;
 
 #if STATUS_DUMP
+    bool justRight = !hwstate::swcmp(rightSide.switches, just_right_stat);
+    bool leftCheck = !hwstate::swcmp(leftSide.switches, status_keys_left);
+    bool rightCheck = !hwstate::swcmp(rightSide.switches, status_keys_right);
     // Check for hardware request thingamajig:
     // This is hard coded, mostly because I'm just hacking
-    if (!hwstate::swcmp(leftSide, status_keys_left) &&
-        !hwstate::swcmp(rightSide, status_keys_right)) {
-      type_string("Left Battery level ");
-      type_number(leftSide.battery_level);
-      type_string("\nRight battery level ");
+    if (justRight || (leftCheck && rightCheck)) {
+      if (!justRight) {
+        type_string("Left battery level: ");
+        type_number(leftSide.battery_level);
+        type_string("%\n");
+      }
+      type_string("Right battery level: ");
       type_number(rightSide.battery_level);
-      type_string("\nLayer Stack: ");
+      type_string("%\nLayer stack: ");
       for (int i = 0; i <= layer_pos; i++) {
-        type_number(i);
-        type_string(": ");
         type_string(layer_names[layer_stack[i]]);
-        type_string(", ");
+        type_string(" (");
+        type_number(i);
+        type_string(i == layer_pos ? ")" : "), ");
       }
       type_string("\n");
     }
@@ -477,6 +495,10 @@ void type_string(const char* str) {
           break;
         case '-':
           n = HID_KEY_MINUS;
+          break;
+        case '%':
+          n = HID_KEY_5;
+          shift = true;
           break;
         default:
           n = HID_KEY_PERIOD;
