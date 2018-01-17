@@ -280,6 +280,7 @@ without needing a wire :D
 * I should make sure that I'm consistent with trailing underscores indicating a
   full keycode, rather than something that needs to be used in a KEY() or MOD()
   macro.
+* Testing. Testing would be good.
 
 **Useful links**
 
