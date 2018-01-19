@@ -1,21 +1,32 @@
 # Let's try this, because Arduino is kind of a PITA
 # I basically just copied the crap out of the build output and dumped it here
+
+# Some simple details
+OUT=out
+
+# AdaFruit library installation location/version malarkey
 VER=0.8.1
 ADAFRUIT=${HOME}/Library/Arduino15/packages/adafruit
-TOOLS=${ADAFRUIT}/tools/gcc-arm-none-eabi/5_2-2015q4/
-CC=${TOOLS}/bin/arm-none-eabi-gcc
-CPP=${TOOLS}/bin/arm-none-eabi-g++
+TOOLS=${ADAFRUIT}/tools/gcc-arm-none-eabi/5_2-2015q4
 HWROOT=${ADAFRUIT}/hardware/nrf52/${VER}
 
+# Tools (probably don't need to change these at all)
+CC=${TOOLS}/bin/arm-none-eabi-gcc
+CPP=${TOOLS}/bin/arm-none-eabi-g++
+OBJCOPY=${TOOLS}bin/arm-none-eabi-objcopy
+
+# Flags for compilation
 DEFINES=-DF_CPU=64000000 -DARDUINO=10613 -DARDUINO_NRF52_FEATHER \
-	-DARDUINO_ARCH_NRF52 -DARDUINO_BSP_VERSION="${VER}" \
-	-DARDUINO_FEATHER52 -DARDUINO_NRF52_ADAFRUIT -DNRF5 -DNRF52 -DNRF52832_XXAA \
-	-DUSE_LFXO -DS132 -DSD_VER=201 -DCFG_DEBUG=0
+-DARDUINO_ARCH_NRF52 -DARDUINO_BSP_VERSION="${VER}" \
+-DARDUINO_FEATHER52 -DARDUINO_NRF52_ADAFRUIT -DNRF5 -DNRF52 -DNRF52832_XXAA \
+-DUSE_LFXO -DS132 -DSD_VER=201 -DCFG_DEBUG=0
 TARGET=-mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16
-CODEGEN=-nostdlib --param max-inline-insns-single=500 -ffunction-sections -fdata-sections -fno-threadsafe-statics -fno-rtti -fno-exceptions
+CODEGEN=-nostdlib --param max-inline-insns-single=500 -ffunction-sections -fdata-sections
 FLAGS=-g -Wall -u _printf_float -MMD
-LANG=-std=gnu++11 -w -x c++
+CPPLANG=-std=gnu++11 -w -x c++ -fno-rtti -fno-exceptions -fno-threadsafe-statics
+CLANG=-std=gnu11 -DSOFTDEVICE_PRESENT
 OPT=-Os
+
 INCLUDES=\
 	"-I${HWROOT}/cores/nRF5/SDK/components/toolchain/"\
 	"-I${HWROOT}/cores/nRF5/SDK/components/toolchain/cmsis/include"\
@@ -45,18 +56,29 @@ INCLUDES=\
 	"-I${HWROOT}/libraries/Bluefruit52Lib/src"\
 	"-I${HWROOT}/libraries/nffs/src"
 
-CPPFLAGS=${TARGET} ${FLAGS} ${CODEGEN} ${LANG} ${DEFINES} ${OPT} ${INCLUDES}
+CPPFLAGS=${TARGET} ${FLAGS} ${CODEGEN} ${CPPLANG} ${DEFINES} ${OPT} ${INCLUDES}
+CFLAGS=${TARGET} ${FLAGS} ${CODEGEN} ${CLANG} ${DEFINES} ${OPT} ${INCLUDES}
 
-all: left.o right.o
+
+# Actual rules for building
+
+all: ${OUT} ${OUT}/left.o ${OUT}/right.o
 	@echo ${ADAFRUIT}
 
-left.o: left-slave.cpp shared.h
-	${CPP} -c ${CPPFLAGS} left-slave.cpp -o left.o
+${OUT}:
+	-mkdir ${OUT}
 
-right.o: right-master.cpp keyhelpers.h keymap.h keystate.h shared.h
-	${CPP} -c ${CPPFLAGS} right-master.cpp -o right.o
+${OUT}/left.o: left-slave.cpp shared.h
+	${CPP} -c ${CPPFLAGS} left-slave.cpp -o ${OUT}/left.o
+
+${OUT}/right.o: right-master.cpp keyhelpers.h keymap.h keystate.h shared.h
+	${CPP} -c ${CPPFLAGS} right-master.cpp -o ${OUT}/right.o
 
 clean:
-	-rm *.o
+	-rm -rf ${OUT}
 
-# DO NOT DELETE
+${OUT}/right.hex: ${OUT}/right.elf
+	${OBJCOPY) -O ihex
+
+#"${TOOLS}/bin/arm-none-eabi-objcopy" -O ihex  "${OUTPUT}/RightHand_master.ino.elf" "${OUTPUT}/RightHand_master.ino.hex"
+#/usr/local/bin/nrfutil --verbose dfu serial -pkg ${OUTPUT}/RightHand_master.ino.zip -p /dev/cu.SLAB_USBtoUART -b 115200
