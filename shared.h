@@ -137,6 +137,7 @@ struct hwstate {
       swcpy(switches, newSwitches);
       stableCount = 0;
     } else if (stableCount) {
+      DBG(dumpVal(stableCount, "Debounce Count: "));
       stableCount++;
     }
   }

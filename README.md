@@ -266,6 +266,9 @@ without needing a wire :D
 
 ## Future Plans
 
+* Add a default layer setting doodad when the initial bluetooth connection is
+  made. Given that the indicator isn't obvious, I find this regularly
+  frustrating...
 * Add an LED or two or three to indicate layer/mode stuff: There's a nice spot
   for it where the LCD screen went on the Infinity...
 * Upload my Fusion360 project for the wood case
