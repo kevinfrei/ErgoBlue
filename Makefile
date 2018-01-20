@@ -9,6 +9,7 @@ VER=0.8.1
 ADAFRUIT=${HOME}/Library/Arduino15/packages/adafruit
 TOOLS=${ADAFRUIT}/tools/gcc-arm-none-eabi/5_2-2015q4
 HWROOT=${ADAFRUIT}/hardware/nrf52/${VER}
+PORT=/dev/cu.SLAB_USBtoUART
 
 # Tools (probably don't need to change these at all)
 CC=${TOOLS}/bin/arm-none-eabi-gcc
@@ -222,19 +223,15 @@ CORE_OBJS = \
 
 all: ${OUT} left right
 
-flashl: left
-#TODO: flash this thing!
+flashl: ${OUT} ${OUT}/left-slave.zip
+	${NRFUTIL} --verbose dfu serial -pkg ${OUT}/left-slave.zip -p ${PORT} -b 115200
 
-flashr: right
-	#TODO: flash this thing!
+flashr: ${OUT} ${OUT}/right-master.zip
+	${NRFUTIL} --verbose dfu serial -pkg ${OUT}/right-master.zip -p ${PORT} -b 115200
 
 left: ${OUT}/left-slave.zip
 
 right: ${OUT}/right-master.zip
-
-bflib: ${OUT} ${BFLIB_OBJS}
-
-nffs: ${OUT} ${NFFS_OBJS}
 
 ${OUT}/%.zip : ${OUT}/%.hex
 	${NRFUTIL} dfu genpkg --dev-type 0x0052 --sd-req 0x0088 --application $< $@
@@ -248,7 +245,7 @@ ${OUT}/right-master.elf : ${OUT}/core.a ${NFFS_OBJS} ${BFLIB_OBJS}
 
 ${OUT}/%.elf : ${OUT}/%.o
 	${CC}  "-L${OUT}" -Os -Wl,--gc-sections -save-temps \
-	"-L${HWROOT}/variants/feather52" "-L${HWROOT}/cores/nRF5/linker" \
+	"-L${HWROOT}/cores/nRF5/linker" \
 	"-Tbluefruit52_s132_2.0.1.ld" \
 	"-Wl,-Map,$@.map" \
 	${TARGET} -u _printf_float \
@@ -257,7 +254,6 @@ ${OUT}/%.elf : ${OUT}/%.o
 	-Wl,--warn-section-align --specs=nano.specs --specs=nosys.specs -o $@ \
 	$< ${NFFS_OBJS} ${BFLIB_OBJS} \
 	-Wl,--start-group -lm "${OUT}/core.a" -Wl,--end-group
-
 
 ${OUT}/core.a: ${CORE_OBJS}
 	-rm $@
@@ -359,5 +355,3 @@ ${OUT}/%.c.o: ${BFLIB_DIRUTILITY}/%.c
 
 clean:
 	@-rm -rf ${OUT}
-
-# /usr/local/bin/nrfutil --verbose dfu serial -pkg ${OUTPUT}/RightHand_master.ino.zip -p /dev/cu.SLAB_USBtoUART -b 115200
