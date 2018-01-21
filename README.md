@@ -85,6 +85,18 @@ you'll see when you try to connect it to your computer (or iPad, or phone, or
 whatever). The left hand devices is the 'slave' and all it does is communicate
 the state of the keys to the master device.
 
+### Update: No Arduino IDE needed (or actually used, currently)
+
+I was annoyed enough by the fact that the Arduino IDE was writing the original
+file over the top of symlinks that I stopped using it as an editor (it's pretty
+crummy as an editor anyway). So, while on airplanes last week, I migrated to a
+little Makefile that is *much* faster than the Arduino build. `make flashl -j`
+will build and flash the left half. `flashr` instead will flash the right. If
+you don't want to flash, but just want to compile the code, just a plain `make
+-j` will suffice (`-j` does multi-process build, which is way faster, even on my
+wimpy little *manager edition* MacBook 12" than the single process, single
+threaded Arduino build)
+
 ## Designing the matrix
 First, go and read about keyboard matrices. There are a number of well written
 explanations for how they work. [Here's the one I found that I liked the
