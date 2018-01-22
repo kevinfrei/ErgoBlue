@@ -2,7 +2,7 @@
 // It's not really a 'clean' way to do this, but I'm just hacking & slashing...
 
 #include <bluefruit.h>
-#define DEBUG 1
+// #define DEBUG 1
 
 #if DEBUG
 #define DBG(a) a
@@ -43,7 +43,8 @@ constexpr uint8_t numrows = sizeof(rowPins) / sizeof(*rowPins);
 
 constexpr uint8_t VBAT_PIN = 31; // pin 31 is available for sampling the battery
 
-constexpr uint8_t DEBOUNCE_COUNT = 10;
+// I had this set to 10, but would still occasionally see bounces. Let's try 15.
+constexpr uint8_t DEBOUNCE_COUNT = 15;
 
 // Some globals used by both halves
 uint32_t last_bat_time = 0;

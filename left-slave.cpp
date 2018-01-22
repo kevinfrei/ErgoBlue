@@ -8,9 +8,13 @@ void setup() {
   shared_setup();
   Bluefruit.begin();
   Bluefruit.autoConnLed(false);
-  // I should be able to turn this *way* down, since I'm talking to the master
-  // device sitting less than 10cm away, right?
-  Bluefruit.setTxPower(0);
+  // I had turned this all the way down. Given that my receiver is less than 20
+  // cm away, I didn't know if it would be enough. I bumped it up to 30, because
+  // it seemed like I was occasionally seeing weirdness that I wasn't when it
+  // was set at 0. If you spread your keyboards apart greater distance, you may
+  // want to try higher power. Acceptable values are -40, -30, -20, -16, -12,
+  // -8, -4, 0, 4
+  Bluefruit.setTxPower(-30);
   Bluefruit.setName(LHS_NAME);
 
   bledis.setManufacturer(MANUFACTURER);
