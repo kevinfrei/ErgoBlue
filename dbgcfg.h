@@ -1,7 +1,7 @@
 #if !defined(DBGCFG_H)
 #define DBGCFG_H
 
-// #define DEBUG 1
+#define DEBUG 1
 
 #if DEBUG
 #define DBG(a) a

@@ -219,9 +219,15 @@ CORE_OBJS = \
 			$(patsubst %.cpp, %.cpp.o, \
 				$(patsubst %.S, %.S.o, $(notdir ${CORE_SRCS})))))
 
+ALL_LIBS = ${OUT}/core.a ${OUT}/nffs.a ${OUT}/bflib.a
+
 .PHONY: clean left right flashl flashr
 
 all: ${OUT} left right
+
+DEPS = $(CORE_OBJS:.o=.d) $(NFFS_OBJS:.o=.d) $(BFLIB_OBJS:.o=.d) ${OUT}/left-slave.cpp.d ${OUT}/right-master.cpp.d
+
+-include ${DEPS}
 
 flashl: ${OUT} ${OUT}/left-slave.zip
 	${NRFUTIL} --verbose dfu serial -pkg ${OUT}/left-slave.zip -p ${PORT} -b 115200
@@ -239,32 +245,33 @@ ${OUT}/%.zip : ${OUT}/%.hex
 ${OUT}/%.hex : ${OUT}/%.elf
 	${OBJCOPY} -O ihex $< $@
 
-${OUT}/left-slave.elf : ${OUT}/core.a ${NFFS_OBJS} ${BFLIB_OBJS}
+${OUT}/left-slave.elf : ${ALL_LIBS}
 
-${OUT}/right-master.elf : ${OUT}/core.a ${NFFS_OBJS} ${BFLIB_OBJS}
+${OUT}/right-master.elf : ${ALL_LIBS}
 
-${OUT}/%.elf : ${OUT}/%.o
-	${CC}  "-L${OUT}" -Os -Wl,--gc-sections -save-temps \
-	"-L${HWROOT}/cores/nRF5/linker" \
-	"-Tbluefruit52_s132_2.0.1.ld" \
-	"-Wl,-Map,$@.map" \
-	${TARGET} -u _printf_float \
+${OUT}/%.elf : ${OUT}/%.cpp.o
+	${CC} -L${OUT} -Os -Wl,--gc-sections -save-temps \
+	-L${HWROOT}/cores/nRF5/linker "-Tbluefruit52_s132_2.0.1.ld" \
+	"-Wl,-Map,$@.map" ${TARGET} -u _printf_float \
 	-Wl,--cref -Wl,--check-sections -Wl,--gc-sections \
 	-Wl,--unresolved-symbols=report-all -Wl,--warn-common \
-	-Wl,--warn-section-align --specs=nano.specs --specs=nosys.specs -o $@ \
-	$< ${NFFS_OBJS} ${BFLIB_OBJS} \
-	-Wl,--start-group -lm "${OUT}/core.a" -Wl,--end-group
+	-Wl,--warn-section-align --specs=nano.specs --specs=nosys.specs \
+	-o $@ $< -Wl,--start-group -lm ${ALL_LIBS} -Wl,--end-group
 
 ${OUT}/core.a: ${CORE_OBJS}
 	-rm $@
 	${AR} rcs $@ ${CORE_OBJS}
 
+${OUT}/nffs.a: ${NFFS_OBJS}
+	-rm $@
+	${AR} rcs $@ ${NFFS_OBJS}
+
+${OUT}/bflib.a: ${BFLIB_OBJS}
+	-rm $@
+	${AR} rcs $@ ${BFLIB_OBJS}
+
 ${OUT}:
 	@-mkdir ${OUT}
-
-${OUT}/left-slave.o: left-slave.cpp shared.h
-
-${OUT}/right-master.o: right-master.cpp keyhelpers.h keymap.h keystate.h shared.h
 
 ${OUT}/%.S.o : ${CORE_DIR}/%.S
 	${CC} -c ${SFLAGS} -o $@ $<
@@ -311,7 +318,7 @@ ${OUT}/%.c.o : ${CORE_DIR_SYSVIEW}/%.c
 ${OUT}/%.c.o : ${CORE_DIR_SV_SEG}/%.c
 	${CC} -c ${CFLAGS} -o $@ $<
 
-${OUT}/%.o: %.cpp
+${OUT}/%.cpp.o: %.cpp
 	${CPP} -c ${CPPFLAGS} -o $@ $<
 
 ${OUT}/%.cpp.o: ${NFFS_DIR}/%.cpp
@@ -355,3 +362,6 @@ ${OUT}/%.c.o: ${BFLIB_DIRUTILITY}/%.c
 
 clean:
 	@-rm -rf ${OUT}
+
+#depend:
+#	makedepend -- $(CPPFLAGS) $(CFLAGS) -- left-slave.cpp right-master.cpp

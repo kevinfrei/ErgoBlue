@@ -22,16 +22,25 @@ constexpr uint8_t status_keys_right[] = {0, 0, 0, 1, 1};
 // If you hold this down, just on the right keyboard, it should RHS status only
 // (might be made helpful in the future...)
 constexpr uint8_t just_right_stat[] = {0, 0, 0, 3, 3};
+// Hit these six keys, and the bluetooth bonds get removed... (Both Shifts, the
+// keys 3 rows above the shifts, and the 'innermost' keys logically  between the
+// 5 & the 6 keys)
+constexpr uint8_t status_clear_bonds_left[] = {0x82, 0, 0, 0x80, 0};
+constexpr uint8_t status_clear_bonds_right[] = {0x41, 0, 0, 1, 0};
 #endif
 
 // Declarations
 void resetKeyMatrix();
 void cent_connect_callback(uint16_t conn_handle);
 void cent_disconnect_callback(uint16_t conn_handle, uint8_t reason);
+void core_connect_callback(uint16_t conn_handle);
+void core_disconnect_callback(uint16_t conn_handle, uint8_t reason);
 void scan_callback(ble_gap_evt_adv_report_t* report);
 void startAdv();
 void type_string(const char* str);
 void type_number(uint32_t val);
+
+uint16_t core_handle = 0xFFFF;
 
 // In Arduino world the 'setup' function is called to initialize the device.
 // The 'loop' function is called over & over again, after setup completes.
@@ -50,7 +59,7 @@ void setup() {
   // I should experiment to see how low I can get it and still communicate with
   // both my Mac and my PC reliably. They're each within a meter of the
   // keyboard... Acceptable values: -40, -30, -20, -16, -12, -8, -4, 0, 4
-  Bluefruit.setTxPower(-16);
+  Bluefruit.setTxPower(4);
   Bluefruit.setName(BT_NAME);
 
   Bluefruit.Central.setConnectCallback(cent_connect_callback);
@@ -63,6 +72,8 @@ void setup() {
   dis.begin();
 
   clientUart.begin();
+  Bluefruit.setConnectCallback(core_connect_callback);
+  Bluefruit.setDisconnectCallback(core_disconnect_callback);
   // clientUart.setRxCallback(cent_bleuart_rx_callback);
 
   /* Start Central Scanning
@@ -97,6 +108,7 @@ void cent_connect_callback(uint16_t conn_handle) {
   // I ought to at least make sure the peer_name is LHS_NAME, right?
   DBG(Serial.print("[Cent] Connected to "));
   DBG(Serial.println(peer_name));
+  DBG(Bluefruit.printInfo());
 
   if (clientUart.discover(conn_handle)) {
     // Enable TXD's notify
@@ -289,6 +301,8 @@ void loop() {
       DBG(dumpVal(downRight.battery_level, "right only battery: "));
       battery.notify(downRight.battery_level);
     }
+    rightSide.battery_level = downRight.battery_level;
+    leftSide.battery_level = downLeft.battery_level;
   }
 
   // Get the before & after of each side into a 64 bit value
@@ -307,7 +321,7 @@ void loop() {
       // Add offset to the right scan code...
       sc = getNextScanCode(deltaRight, afterRight, pressed) + numcols * numrows;
     }
-    DBG(dumpScanCode(sc, pressed));
+    DBG2(dumpScanCode(sc, pressed));
 
     // Get a state slot for this scan code
     keystate* state = findStateSlot(sc);
@@ -393,7 +407,7 @@ void loop() {
         }
       }
     }
-#if DEBUG
+#if DEBUG > 1
     Serial.print("mods=");
     Serial.print(mods, HEX);
     Serial.print(" repsize=");
@@ -441,8 +455,17 @@ void loop() {
         type_string(i == layer_pos ? ")" : "), ");
       }
       type_string("\n");
+      DBG(Bluefruit.printInfo());
+      DBG(dumpHex(Bluefruit.connHandle(), "Connection handle: "));
+      DBG(dumpHex(Bluefruit.connPaired(), "Connection paired: "));
+      DBG(dumpHex(core_handle, "Core Connection handle: "));
     }
 #endif
+    if (!hwstate::swcmp(rightSide.switches, status_clear_bonds_right) &&
+        !hwstate::swcmp(leftSide.switches, status_clear_bonds_left)) {
+      DBG(Serial.println("CLEARING BLUETOOTH BONDS!"));
+      Bluefruit.clearBonds();
+    }
   }
   waitForEvent(); // Request CPU enter low-power mode until an event occurs
 }
@@ -546,3 +569,23 @@ void type_number(uint32_t val) {
   hid.keyboardReport(0, console);
 }
 #endif
+
+void core_connect_callback(uint16_t handle) {
+  DBG(dumpHex(handle, "Core Connected: "));
+  core_handle = handle;
+  char buf[501];
+  Bluefruit.Gap.getPeerName(handle, buf, 500);
+  DBG(Serial.println("Peer Name:"));
+  DBG(Serial.println(buf));
+  if (!strstr(buf, "mac")) {
+    // If we're not on a mac, set the keyboard in Windows mode
+    // This is *incredibly* low-tech, but it works for my purposes :/
+    layer_push(LAYER_WIN_BASE);
+  }
+}
+
+void core_disconnect_callback(uint16_t handle, uint8_t reason) {
+  DBG(dumpHex(handle, "Core Disconnected: "));
+  DBG(dumpHex(reason, "Reason: 0x"));
+  core_handle = 0xFFFF;
+}
