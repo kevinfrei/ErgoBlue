@@ -115,7 +115,7 @@ project.)
 
 I grabbed the DXF for the ErgoDox plate and printed a few out to try to draw a
 key matrix I was happy with. First, I drew a plain matrix, like so:
-![Key Matrix Sketch](keymatrix.png)
+![Key Matrix Sketch](docs/keymatrix.png)
 As you can see, I'm a terrible artist, and also screwed up a couple things, but
 erasers are helpful. Maybe I'll turn into into something less hand-drawn in the
 future. Probably not.
@@ -125,10 +125,10 @@ in the switch plate, and looked at where the connections go. Based on that, I
 drew up a wiring diagram for each side:
 
 Here's the right hand side:
-![Right Hand Side](RHS.png)
+![Right Hand Side](docs/RHS.png)
 
 And here's the left:
-![Left Hand Side](LHS.png)
+![Left Hand Side](docs/LHS.png)
 I know: I'm an artist. My talent is wasted managing a team of brilliant
 engineers.
 
@@ -137,14 +137,14 @@ engineers.
 ### Soldering
 
 First, I stripped wires so they fit across the rows, then soldered them:
-![Rows All Wired](rows-wired.jpg)
+![Rows All Wired](docs/rows-wired.jpg)
 
 When the diodes showed up I soldered them together on the left hand side. I'm
 old and sitting down soldering for a lot time makes my back hurt, so I just
 finished up the left hand side (probably not the smartest, because the right
 hand side is the master, here, so I had to mess with both chunks of Wez's code
 now. Here's the left hand side all dioded (that's a word!) up.
-![Left Hand Size Dioded](lhs-dioded.jpg)
+![Left Hand Size Dioded](docs/lhs-dioded.jpg)
 
 ### Case Design
 
@@ -183,14 +183,14 @@ lesson, but I didn't). Next I screwed the switch plates into position. I started
 with the right side, and realized that I didn't have enough space under the BLE
 PCB for the wires, so on the left side, I remedied that situation.
 
-![Hardwood Cases: Top View](case-top.jpg)
+![Hardwood Cases: Top View](docs/case-top.jpg)
 
 The little cut-out above the thumb cluster is for a hinge to hold the leg. I
 like my keyboard tented up a bit, but I use a keyboard drawer at home, so the
 legs will fold down to allow the drawer to close up and hide the horror of my
 messy desk.
 
-![Hardwood Cases: Underbelly](case-underbelly.jpg)
+![Hardwood Cases: Underbelly](docs/case-underbelly.jpg)
 
 I'll upload my Fusion360 project somewhere accessible if anyone asks (probably
 not up here: I have no idea how well a f3d file versions...)
@@ -211,17 +211,17 @@ over the DSA Granite ones I put on this thing while still 'in development').
 Here's a nice picture of it after all the 'hardware' parts of the project are
 complete. The only thing I haven't done is seal the little hinged legs.
 
-![Seedy Underbelly](wired-underbelly.jpg)
+![Seedy Underbelly](docs/wired-underbelly.jpg)
 
 And here's a top view:
 
-![Over the top](wired-top.jpg)
+![Over the top](docs/wired-top.jpg)
 
 And, after everything was done, I realized that I needed power switches, because
 500mAh isn't sufficient to last more than a day or so. So here's a new picture
 of the underbelly of my keyboard halves:
 
-![Switched Underbelly](underbelly-switched.jpg)
+![Switched Underbelly](docs/underbelly-switched.jpg)
 
 ### Software Story
 
@@ -259,7 +259,7 @@ be just a tad laggy. No more wires on my desktop for my keyboard! W00t! (And
 yes, I noticed that I messed up the V and C keys, but my fingers know which is
 which, and I'm going to switch the keycaps with my old monstrosity anyway, so
 I'll fix that soon enough
-![NO WIRES!](no-wires.jpg)
+![NO WIRES!](docs/no-wires.jpg)
 
 Okay, I've debounced the switch reading code. I also have 3 layers, now, and I
 added layer toggling, layer switching, and layer shifting. The biggest remaining
