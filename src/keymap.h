@@ -113,9 +113,11 @@
 #define WIN_CAP LYR_SHIFT(LAYER_WIN_CAP)
 #define WIN_CTL LYR_SHIFT(LAYER_WIN_CTL)
 
+#if STATUS_DUMP
 // For the status dumper thingamajig
 const char* layer_names[] = {
     "Base/Mac", "Win", "Fn", "MacCaps", "WinCaps", "WinCtrl"};
+#endif
 
 const action_t keymap[][numcols * numrows * 2] = {
     {// LAYER_MAC_BASE (0)
@@ -182,7 +184,7 @@ const action_t keymap[][numcols * numrows * 2] = {
      // equivalent The poster children are Caps-Q => Alt-F4 and Caps-W => Ctl-F4
      // Effectively making Caps-Q & Caps-W correspond to Quit and Close Window
      // TODO: Support key sequences so that gui-left, up/down works for quadrant
-     // window docking. Also probably try to do it from AutoHotKey because the
+     // window docking. Alternatively, try to do it from AutoHotKey because the
      // way Windows 10 natively handles it is shit.
      LROW1(CTK(ESCAPE), CTK(1), CTK(2), CTK(3), CTK(4), CTK(5), GU(DOWN_)),
      LROW2(CTK(TAB), ALK(F4), CTK(F4), CTK(E), CTK(R), CTK(T), GU(LEFT_)),
