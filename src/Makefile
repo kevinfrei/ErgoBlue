@@ -19,10 +19,22 @@ AR=${TOOLS}/bin/arm-none-eabi-ar
 NRFUTIL=/usr/local/bin/nrfutil
 
 # Flags for compilation
-DEFINES=-DF_CPU=64000000 -DARDUINO=10613 -DARDUINO_NRF52_FEATHER \
--DARDUINO_ARCH_NRF52 -DARDUINO_BSP_VERSION=\"${VER}\" \
--DARDUINO_FEATHER52 -DARDUINO_NRF52_ADAFRUIT -DNRF5 -DNRF52 -DNRF52832_XXAA \
--DUSE_LFXO -DS132 -DSD_VER=201 -DCFG_DEBUG=0
+# First, DEBUG and STATUS_DUMP configuration flags (then everything else)
+DEFINES=-DDEBUG=1 -DSTATUS_DUMP \
+-DF_CPU=64000000 \
+-DARDUINO=10613 \
+-DARDUINO_NRF52_FEATHER \
+-DARDUINO_ARCH_NRF52 \
+-DARDUINO_BSP_VERSION=\"${VER}\" \
+-DARDUINO_FEATHER52 \
+-DARDUINO_NRF52_ADAFRUIT \
+-DNRF5 \
+-DNRF52 \
+-DNRF52832_XXAA \
+-DUSE_LFXO \
+-DS132 \
+-DSD_VER=201 \
+-DCFG_DEBUG=0
 TARGET=-mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16
 CODEGEN=-nostdlib --param max-inline-insns-single=500 -ffunction-sections -fdata-sections
 FLAGS=-g -Wall -u _printf_float -MMD
@@ -32,6 +44,7 @@ SLANG=-x assembler-with-cpp
 OPT=-Os
 
 SHARED_SRC = dbgcfg.cpp hwstate.cpp shared.cpp
+RIGHT_SRC = status_dump.cpp
 
 INCLUDES=\
 	"-I${HWROOT}/cores/nRF5/SDK/components/toolchain/"\
@@ -222,14 +235,30 @@ CORE_OBJS = \
 				$(patsubst %.S, %.S.o, $(notdir ${CORE_SRCS})))))
 
 ALL_LIBS = ${OUT}/core.a ${OUT}/nffs.a ${OUT}/bflib.a
-OTHER_OBJS = $(addprefix ${OUT}/, $(patsubst %.cpp, %.cpp.o, ${SHARED_SRC}))
+SHARED_OBJS = $(addprefix ${OUT}/, $(patsubst %.cpp, %.cpp.o, ${SHARED_SRC}))
+RIGHT_OBJS = $(addprefix ${OUT}/, $(patsubst %.cpp, %.cpp.o, ${RIGHT_SRC}))
 
-.PHONY: clean left right flashl flashr
+ELF_FLAGS = ${OPT} ${TARGET} -save-temps \
+-L${HWROOT}/cores/nRF5/linker \
+-L${OUT} \
+"-Tbluefruit52_s132_2.0.1.ld" \
+-u _printf_float \
+-Wl,--cref \
+-Wl,--check-sections \
+-Wl,--gc-sections \
+-Wl,--unresolved-symbols=report-all \
+-Wl,--warn-common \
+-Wl,--warn-section-align \
+--specs=nano.specs \
+--specs=nosys.specs
+
+.PHONY: clean allclean left right flashl flashr
 
 all: ${OUT} left right
 
 DEPS = $(CORE_OBJS:.o=.d) $(NFFS_OBJS:.o=.d) $(BFLIB_OBJS:.o=.d) \
-	${OUT}/left-slave.cpp.d ${OUT}/right-master.cpp.d $(OTHER_OBJS:.o=.d)
+$(SHARED_OBJS:.o=.d) $(RIGHT_OBJS:.o=.d) \
+${OUT}/left-slave.cpp.d ${OUT}/right-master.cpp.d
 
 -include ${DEPS}
 
@@ -249,26 +278,16 @@ ${OUT}/%.zip : ${OUT}/%.hex
 ${OUT}/%.hex : ${OUT}/%.elf
 	${OBJCOPY} -O ihex $< $@
 
-${OUT}/left-slave.elf : ${ALL_LIBS} ${OTHER_OBJS}
+${OUT}/left-slave.elf : ${ALL_LIBS}
 
-${OUT}/right-master.elf : ${ALL_LIBS} ${OTHER_OBJS}
+${OUT}/right-master.elf : ${ALL_LIBS}
 
-${OUT}/%.elf : ${OUT}/%.cpp.o
-	${CC} ${OPT} ${TARGET} -save-temps \
-	-L${HWROOT}/cores/nRF5/linker \
-	-L${OUT} \
-	"-Tbluefruit52_s132_2.0.1.ld" \
-	-u _printf_float \
-	"-Wl,-Map,$@.map" \
-	-Wl,--cref \
-	-Wl,--check-sections \
-	-Wl,--gc-sections \
-	-Wl,--unresolved-symbols=report-all \
-	-Wl,--warn-common \
-	-Wl,--warn-section-align \
-	--specs=nano.specs \
-	--specs=nosys.specs \
-	-o $@ $< ${OTHER_OBJS} \
+${OUT}/left-slave.elf : ${OUT}/left-slave.cpp.o ${SHARED_OBJS}
+	${CC} ${ELF_FLAGS} "-Wl,-Map,$@.map" -o $@ $^ \
+	-Wl,--start-group -lm ${ALL_LIBS} -Wl,--end-group
+
+${OUT}/right-master.elf : ${OUT}/right-master.cpp.o ${SHARED_OBJS} ${RIGHT_OBJS}
+	${CC} ${ELF_FLAGS} "-Wl,-Map,$@.map" -o $@ $^ \
 	-Wl,--start-group -lm ${ALL_LIBS} -Wl,--end-group
 
 ${OUT}/core.a: ${CORE_OBJS}
@@ -286,8 +305,13 @@ ${OUT}/bflib.a: ${BFLIB_OBJS}
 ${OUT}:
 	@-mkdir ${OUT}
 
+allclean:
+	@-rm ${OUT}/*
+
 clean:
-	@-rm -rf ${OUT}
+	@-rm ${SHARED_OBJS} ${RIGHT_OBJS} \
+	${OUT}/right-master.cpp.o ${OUT}/left-slave.cpp.o \
+	${OUT}/*.elf ${OUT}/*.zip ${OUT}/*.hex ${OUT}/*.map
 
 # And now all the custom subdir rules :/
 
