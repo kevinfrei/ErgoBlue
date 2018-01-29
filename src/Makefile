@@ -31,6 +31,8 @@ CLANG=-std=gnu11 -DSOFTDEVICE_PRESENT
 SLANG=-x assembler-with-cpp
 OPT=-Os
 
+SHARED_SRC = dbgcfg.cpp hwstate.cpp shared.cpp
+
 INCLUDES=\
 	"-I${HWROOT}/cores/nRF5/SDK/components/toolchain/"\
 	"-I${HWROOT}/cores/nRF5/SDK/components/toolchain/cmsis/include"\
@@ -220,12 +222,14 @@ CORE_OBJS = \
 				$(patsubst %.S, %.S.o, $(notdir ${CORE_SRCS})))))
 
 ALL_LIBS = ${OUT}/core.a ${OUT}/nffs.a ${OUT}/bflib.a
+OTHER_OBJS = $(addprefix ${OUT}/, $(patsubst %.cpp, %.cpp.o, ${SHARED_SRC}))
 
 .PHONY: clean left right flashl flashr
 
 all: ${OUT} left right
 
-DEPS = $(CORE_OBJS:.o=.d) $(NFFS_OBJS:.o=.d) $(BFLIB_OBJS:.o=.d) ${OUT}/left-slave.cpp.d ${OUT}/right-master.cpp.d
+DEPS = $(CORE_OBJS:.o=.d) $(NFFS_OBJS:.o=.d) $(BFLIB_OBJS:.o=.d) \
+	${OUT}/left-slave.cpp.d ${OUT}/right-master.cpp.d $(OTHER_OBJS:.o=.d)
 
 -include ${DEPS}
 
@@ -245,18 +249,27 @@ ${OUT}/%.zip : ${OUT}/%.hex
 ${OUT}/%.hex : ${OUT}/%.elf
 	${OBJCOPY} -O ihex $< $@
 
-${OUT}/left-slave.elf : ${ALL_LIBS}
+${OUT}/left-slave.elf : ${ALL_LIBS} ${OTHER_OBJS}
 
-${OUT}/right-master.elf : ${ALL_LIBS}
+${OUT}/right-master.elf : ${ALL_LIBS} ${OTHER_OBJS}
 
 ${OUT}/%.elf : ${OUT}/%.cpp.o
-	${CC} -L${OUT} -Os -Wl,--gc-sections -save-temps \
-	-L${HWROOT}/cores/nRF5/linker "-Tbluefruit52_s132_2.0.1.ld" \
-	"-Wl,-Map,$@.map" ${TARGET} -u _printf_float \
-	-Wl,--cref -Wl,--check-sections -Wl,--gc-sections \
-	-Wl,--unresolved-symbols=report-all -Wl,--warn-common \
-	-Wl,--warn-section-align --specs=nano.specs --specs=nosys.specs \
-	-o $@ $< -Wl,--start-group -lm ${ALL_LIBS} -Wl,--end-group
+	${CC} ${OPT} ${TARGET} -save-temps \
+	-L${HWROOT}/cores/nRF5/linker \
+	-L${OUT} \
+	"-Tbluefruit52_s132_2.0.1.ld" \
+	-u _printf_float \
+	"-Wl,-Map,$@.map" \
+	-Wl,--cref \
+	-Wl,--check-sections \
+	-Wl,--gc-sections \
+	-Wl,--unresolved-symbols=report-all \
+	-Wl,--warn-common \
+	-Wl,--warn-section-align \
+	--specs=nano.specs \
+	--specs=nosys.specs \
+	-o $@ $< ${OTHER_OBJS} \
+	-Wl,--start-group -lm ${ALL_LIBS} -Wl,--end-group
 
 ${OUT}/core.a: ${CORE_OBJS}
 	-rm $@
@@ -272,6 +285,11 @@ ${OUT}/bflib.a: ${BFLIB_OBJS}
 
 ${OUT}:
 	@-mkdir ${OUT}
+
+clean:
+	@-rm -rf ${OUT}
+
+# And now all the custom subdir rules :/
 
 ${OUT}/%.S.o : ${CORE_DIR}/%.S
 	${CC} -c ${SFLAGS} -o $@ $<
@@ -359,9 +377,3 @@ ${OUT}/%.cpp.o: ${BFLIB_DIRUTILITY}/%.cpp
 
 ${OUT}/%.c.o: ${BFLIB_DIRUTILITY}/%.c
 	${CC} -c ${CFLAGS} -o $@ $<
-
-clean:
-	@-rm -rf ${OUT}
-
-#depend:
-#	makedepend -- $(CPPFLAGS) $(CFLAGS) -- left-slave.cpp right-master.cpp

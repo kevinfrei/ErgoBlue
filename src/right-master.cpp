@@ -1,3 +1,7 @@
+#include <bluefruit.h>
+
+#include "dbgcfg.h"
+#include "hwstate.h"
 #include "shared.h"
 
 #include "keyhelpers.h"
@@ -434,9 +438,9 @@ void loop() {
     leftSide = downLeft;
 
 #if STATUS_DUMP
-    bool justRight = !hwstate::swcmp(rightSide.switches, just_right_stat);
-    bool leftCheck = !hwstate::swcmp(leftSide.switches, status_keys_left);
-    bool rightCheck = !hwstate::swcmp(rightSide.switches, status_keys_right);
+    bool justRight = !sw::cmp(rightSide.switches, just_right_stat);
+    bool leftCheck = !sw::cmp(leftSide.switches, status_keys_left);
+    bool rightCheck = !sw::cmp(rightSide.switches, status_keys_right);
     // Check for hardware request thingamajig:
     // This is hard coded, mostly because I'm just hacking
     if (justRight || (leftCheck && rightCheck)) {
@@ -461,8 +465,8 @@ void loop() {
       DBG(dumpHex(core_handle, "Core Connection handle: "));
     }
 #endif
-    if (!hwstate::swcmp(rightSide.switches, status_clear_bonds_right) &&
-        !hwstate::swcmp(leftSide.switches, status_clear_bonds_left)) {
+    if (!sw::cmp(rightSide.switches, status_clear_bonds_right) &&
+        !sw::cmp(leftSide.switches, status_clear_bonds_left)) {
       DBG(Serial.println("CLEARING BLUETOOTH BONDS!"));
       Bluefruit.clearBonds();
     }

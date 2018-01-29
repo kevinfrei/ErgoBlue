@@ -6,16 +6,9 @@
 #if DEBUG
 #define DBG(a) a
 
-void dumpVal(unsigned long v, const char* header = nullptr) {
-  if (header)
-    Serial.print(header);
-  Serial.println(v);
-}
-void dumpHex(unsigned long v, const char* header = nullptr) {
-  if (header)
-    Serial.print(header);
-  Serial.println(v, HEX);
-}
+void dumpVal(unsigned long v, const char* header = nullptr);
+void dumpHex(unsigned long v, const char* header = nullptr);
+
 #if DEBUG == 2
 #define DBG2(a) a
 #else

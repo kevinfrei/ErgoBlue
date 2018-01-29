@@ -1,3 +1,7 @@
+#include <bluefruit.h>
+
+#include "dbgcfg.h"
+#include "hwstate.h"
 #include "shared.h"
 
 BLEDis bledis;
