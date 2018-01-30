@@ -6,17 +6,33 @@ OUT=out
 
 # AdaFruit library installation location/version malarkey
 VER=0.8.1
-ADAFRUIT=${HOME}/Library/Arduino15/packages/adafruit
+ifeq ($(OS),Windows_NT)
+	uname:=Windows
+else
+	uname:=$(shell uname -s)
+endif
+
+ifeq ($(uname), Windows)
+	ADAFRUIT=${HOME}/AppData/Local/Arduino15/packages/adafruit
+	PORT=COM4
+	NRFUTIL=${ADAFRUIT}/hardware/nrf52/${VER}/tools/nrfutil-0.5.2/binaries/win32/nrfutil
+  RMFILES=del
+  RMDIR=rmdir /s /q
+else
+	ADAFRUIT=${HOME}/Library/Arduino15/packages/adafruit
+	PORT=/dev/cu.SLAB_USBtoUART
+	NRFUTIL=/usr/local/bin/nrfutil
+	RMFILES=rm
+	RMDIR=rm -rf
+endif
 TOOLS=${ADAFRUIT}/tools/gcc-arm-none-eabi/5_2-2015q4
 HWROOT=${ADAFRUIT}/hardware/nrf52/${VER}
-PORT=/dev/cu.SLAB_USBtoUART
 
 # Tools (probably don't need to change these at all)
 CC=${TOOLS}/bin/arm-none-eabi-gcc
 CPP=${TOOLS}/bin/arm-none-eabi-g++
 OBJCOPY=${TOOLS}/bin/arm-none-eabi-objcopy
 AR=${TOOLS}/bin/arm-none-eabi-ar
-NRFUTIL=/usr/local/bin/nrfutil
 
 # Flags for compilation
 # First, DEBUG and STATUS_DUMP configuration flags (then everything else)
@@ -291,25 +307,25 @@ ${OUT}/right-master.elf : ${OUT}/right-master.cpp.o ${SHARED_OBJS} ${RIGHT_OBJS}
 	-Wl,--start-group -lm ${ALL_LIBS} -Wl,--end-group
 
 ${OUT}/core.a: ${CORE_OBJS}
-	-rm $@
+	-${RMFILES} $@
 	${AR} rcs $@ ${CORE_OBJS}
 
 ${OUT}/nffs.a: ${NFFS_OBJS}
-	-rm $@
+	-${RMFILES} $@
 	${AR} rcs $@ ${NFFS_OBJS}
 
 ${OUT}/bflib.a: ${BFLIB_OBJS}
-	-rm $@
+	-${RMFILES} $@
 	${AR} rcs $@ ${BFLIB_OBJS}
 
 ${OUT}:
 	@-mkdir ${OUT}
 
 allclean:
-	@-rm ${OUT}/*
+	@-${RMFILES} ${OUT}/*
 
 clean:
-	@-rm ${SHARED_OBJS} ${RIGHT_OBJS} \
+	@-${RMFILES} ${SHARED_OBJS} ${RIGHT_OBJS} \
 	${OUT}/right-master.cpp.o ${OUT}/left-slave.cpp.o \
 	${OUT}/*.elf ${OUT}/*.zip ${OUT}/*.hex ${OUT}/*.map
 
@@ -401,3 +417,4 @@ ${OUT}/%.cpp.o: ${BFLIB_DIRUTILITY}/%.cpp
 
 ${OUT}/%.c.o: ${BFLIB_DIRUTILITY}/%.c
 	${CC} -c ${CFLAGS} -o $@ $<
+
