@@ -13,17 +13,17 @@ else
 endif
 
 ifeq ($(uname), Windows)
-	ADAFRUIT=${HOME}/AppData/Local/Arduino15/packages/adafruit
-	PORT=COM4
-	NRFUTIL=${ADAFRUIT}/hardware/nrf52/${VER}/tools/nrfutil-0.5.2/binaries/win32/nrfutil
-  RMFILES=del
-  RMDIR=rmdir /s /q
+ADAFRUIT=${HOME}/AppData/Local/Arduino15/packages/adafruit
+PORT=COM4
+NRFUTIL=${ADAFRUIT}/hardware/nrf52/${VER}/tools/nrfutil-0.5.2/binaries/win32/nrfutil
+RMFILES=del
+RMDIR=rmdir /s /q
 else
-	ADAFRUIT=${HOME}/Library/Arduino15/packages/adafruit
-	PORT=/dev/cu.SLAB_USBtoUART
-	NRFUTIL=/usr/local/bin/nrfutil
-	RMFILES=rm
-	RMDIR=rm -rf
+ADAFRUIT=${HOME}/Library/Arduino15/packages/adafruit
+PORT=/dev/cu.SLAB_USBtoUART
+NRFUTIL=/usr/local/bin/nrfutil
+RMFILES=rm
+RMDIR=rm -rf
 endif
 TOOLS=${ADAFRUIT}/tools/gcc-arm-none-eabi/5_2-2015q4
 HWROOT=${ADAFRUIT}/hardware/nrf52/${VER}
@@ -61,6 +61,7 @@ OPT=-Os
 
 SHARED_SRC = dbgcfg.cpp hwstate.cpp shared.cpp
 RIGHT_SRC = status_dump.cpp
+USER_SRC = ${SHARED_SRC} ${RIGHT_SRC} left-slave.cpp right-master.cpp
 
 INCLUDES=\
 	"-I${HWROOT}/cores/nRF5/SDK/components/toolchain/"\
@@ -253,6 +254,7 @@ CORE_OBJS = \
 ALL_LIBS = ${OUT}/core.a ${OUT}/nffs.a ${OUT}/bflib.a
 SHARED_OBJS = $(addprefix ${OUT}/, $(patsubst %.cpp, %.cpp.o, ${SHARED_SRC}))
 RIGHT_OBJS = $(addprefix ${OUT}/, $(patsubst %.cpp, %.cpp.o, ${RIGHT_SRC}))
+USER_OBJS =  $(addprefix ${OUT}/, $(patsubst %.cpp, %.cpp.o, ${USER_SRC}))
 
 ELF_FLAGS = ${OPT} ${TARGET} -save-temps \
 -L${HWROOT}/cores/nRF5/linker \
@@ -272,17 +274,15 @@ ELF_FLAGS = ${OPT} ${TARGET} -save-temps \
 
 all: ${OUT} left right
 
-DEPS = $(CORE_OBJS:.o=.d) $(NFFS_OBJS:.o=.d) $(BFLIB_OBJS:.o=.d) \
-$(SHARED_OBJS:.o=.d) $(RIGHT_OBJS:.o=.d) \
-${OUT}/left-slave.cpp.d ${OUT}/right-master.cpp.d
+DEPS = $(CORE_OBJS:.o=.d) $(NFFS_OBJS:.o=.d) $(BFLIB_OBJS:.o=.d) $(USER_OBJS:.o=.d)
 
 -include ${DEPS}
 
-flashl: ${OUT} ${OUT}/left-slave.zip
-	${NRFUTIL} --verbose dfu serial -pkg ${OUT}/left-slave.zip -p ${PORT} -b 115200
+flashl: ${OUT}/left-slave.zip
+	${NRFUTIL} --verbose dfu serial -pkg $< -p ${PORT} -b 115200
 
-flashr: ${OUT} ${OUT}/right-master.zip
-	${NRFUTIL} --verbose dfu serial -pkg ${OUT}/right-master.zip -p ${PORT} -b 115200
+flashr: ${OUT}/right-master.zip
+	${NRFUTIL} --verbose dfu serial -pkg $< -p ${PORT} -b 115200
 
 left: ${OUT}/left-slave.zip
 
@@ -325,8 +325,7 @@ allclean:
 	@-${RMFILES} ${OUT}/*
 
 clean:
-	@-${RMFILES} ${SHARED_OBJS} ${RIGHT_OBJS} \
-	${OUT}/right-master.cpp.o ${OUT}/left-slave.cpp.o \
+	@-${RMFILES} ${USER_OBJS} \
 	${OUT}/*.elf ${OUT}/*.zip ${OUT}/*.hex ${OUT}/*.map
 
 # And now all the custom subdir rules :/
@@ -417,4 +416,3 @@ ${OUT}/%.cpp.o: ${BFLIB_DIRUTILITY}/%.cpp
 
 ${OUT}/%.c.o: ${BFLIB_DIRUTILITY}/%.c
 	${CC} -c ${CFLAGS} -o $@ $<
-
