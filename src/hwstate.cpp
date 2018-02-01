@@ -6,6 +6,8 @@ constexpr uint8_t DEBOUNCE_COUNT = 15;
 
 // Some globals used by both halves
 uint32_t last_bat_time = 0;
+uint8_t stableCount = 0;
+uint8_t recordedChange[numrows];
 
 uint8_t getBatteryPercent() {
   float measuredvbat = analogRead(VBAT_PIN) * 6.6 / 1024;
@@ -23,9 +25,6 @@ uint8_t readBattery(uint32_t now, uint8_t prev) {
   DBG(dumpVal(bat_percentage, "Battery level: "));
   return bat_percentage;
 }
-
-uint8_t stableCount;
-uint8_t recordedChange[numrows];
 
 namespace sw {
 bool cmp(const uint8_t (&swa)[numrows], const uint8_t (&swb)[numrows]) {

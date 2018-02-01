@@ -295,17 +295,13 @@ void loop() {
 
 #if STATUS_DUMP
     // If we do a status dump, don't pass the keys pressed on to the computer...
-    if (!status_dump_check(rightSide, leftSide))
+    status_dump_check(rightSide, leftSide);
 #endif
-    {
-      hid.keyboardReport(mods, report);
-    }
+    hid.keyboardReport(mods, report);
     DBG2(Serial.println("============================="));
     DBG2(Serial.print("Left side "));
-    //DBG2(downLeft.dump());
     DBG2(sw::dmp(downLeft.switches));
     DBG2(Serial.print("Right side "));
-    //DBG2(downRight.dump());
     DBG2(sw::dmp(downRight.switches));
 
     if (!sw::cmp(rightSide.switches, status_clear_bonds_right) &&
