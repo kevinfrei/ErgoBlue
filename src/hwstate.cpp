@@ -83,6 +83,7 @@ void hwstate::readSwitches() {
   if (sw::cmp(newSwitches, stableCount ? recordedChange : switches)) {
     // We've observed a change (in either the delta or the reported: doesn't
     // matter which) record the change and (re)start the timer
+    DBG2(if (stableCount) dumpVal(stableCount, "Resetting Debouncer!"));
     stableCount = 1;
     sw::cpy(recordedChange, newSwitches);
   } else if (stableCount > DEBOUNCE_COUNT) {
@@ -93,7 +94,6 @@ void hwstate::readSwitches() {
     sw::cpy(switches, newSwitches);
     stableCount = 0;
   } else if (stableCount) {
-    DBG2(dumpVal(stableCount, "Debounce Count: "));
     stableCount++;
   }
 }

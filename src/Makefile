@@ -36,7 +36,7 @@ AR=${TOOLS}/bin/arm-none-eabi-ar
 
 # Flags for compilation
 # First, DEBUG and STATUS_DUMP configuration flags (then everything else)
-DEFINES=-DDEBUG=1 -DSTATUS_DUMP \
+DEFINES=-DDEBUG=2 -DSTATUS_DUMP \
 -DF_CPU=64000000 \
 -DARDUINO=10613 \
 -DARDUINO_NRF52_FEATHER \
@@ -60,7 +60,7 @@ SLANG=-x assembler-with-cpp
 OPT=-Os
 
 SHARED_SRC = dbgcfg.cpp hwstate.cpp shared.cpp
-RIGHT_SRC = status_dump.cpp
+RIGHT_SRC = status_dump.cpp right-entry-points.cpp globals.cpp
 USER_SRC = ${SHARED_SRC} ${RIGHT_SRC} left-slave.cpp right-master.cpp
 
 INCLUDES=\
