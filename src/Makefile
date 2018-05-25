@@ -5,7 +5,7 @@
 OUT=out
 
 # AdaFruit library installation location/version malarkey
-VER=0.8.1
+VER=0.8.3
 ifeq ($(OS),Windows_NT)
 	uname:=Windows
 else
@@ -121,6 +121,7 @@ BFLIB_SRCS =\
 	${HWROOT}/libraries/Bluefruit52Lib/src/services/BLEHidGeneric.cpp\
 	${HWROOT}/libraries/Bluefruit52Lib/src/services/BLEMidi.cpp\
 	${HWROOT}/libraries/Bluefruit52Lib/src/services/BLEUart.cpp\
+	${HWROOT}/libraries/Bluefruit52Lib/src/services/bonding.cpp\
 	${HWROOT}/libraries/Bluefruit52Lib/src/services/EddyStone.cpp\
 	${HWROOT}/libraries/Bluefruit52Lib/src/utility/bootloader_util.c\
 	${HWROOT}/libraries/Bluefruit52Lib/src/utility/AdaMsg.cpp
