@@ -1,5 +1,11 @@
 # ErgoBlue
 
+**Deprecated!**
+**I've since moved to a self-designed & built keyboard, so I've stopped doing 
+anything with this code. Go check out 
+[FreiKey](https://github.com/kevinfrei/FreiKey) for the latest. I did a bunch
+of clean up, resulting in a much more reliable keyboard**
+
 Stuff for a fully wireless ErgoDox based on a
 [Gist](https://gist.github.com/wez/b30683a4dfa329b86b9e0a2811a8c593) from the
 fabulous Wez Furlong. If you read his Gist, he explains some of this. I've
